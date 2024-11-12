@@ -1,0 +1,7 @@
+{
+    "tasks": {
+      "dev": "deno run -A npm:next dev --turbopack",
+      "start": "deno run --allow-net --allow-read --allow-env npm:next start",
+      "build": "deno run npm:next build"
+    }
+}
