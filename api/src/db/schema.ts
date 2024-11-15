@@ -1,7 +1,7 @@
-import { integer, pgTable, varchar, json } from "drizzle-orm/pg-core";
+import { uuid, json, pgTable, varchar } from "drizzle-orm/pg-core";
 
 export const gamesTable = pgTable("games", {
-  id: integer().primaryKey().generatedAlwaysAsIdentity(),
+  id: uuid().defaultRandom().primaryKey(),
   name: varchar({ length: 255 }).notNull(),
   data: json(),
 });
