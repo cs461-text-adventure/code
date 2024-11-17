@@ -3,9 +3,9 @@ import React from "react";
 export default async function Games({
   params,
 }: {
-  params: Promise<{ id: string }>
+  params: Promise<{ id: string }>;
 }) {
-  const id = (await params).id
+  const id = (await params).id;
 
   // TODO: ENSURE FETCH RUNS WITHOUT ERROR
   const res = await fetch(
