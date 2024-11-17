@@ -43,6 +43,8 @@ deno run -A npm:drizzle-kit migrate
 
 ## Running the application
 
+"hello world"
+
 ## To start the API:
 
 ```bash
