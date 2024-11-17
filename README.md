@@ -4,7 +4,7 @@
 
 Ensure you have the following installed:
 
-- [Deno](https://deno.land/)
+- [Node](https://nodejs.org/en)
 - [PostgreSQL](https://www.postgresql.org/)
 
 ## Installation
@@ -14,7 +14,13 @@ Ensure you have the following installed:
 Run the following command to install necessary dependencies:
 
 ```bash
-deno install
+cd /api
+npm install
+```
+
+```bash
+cd /web
+npm install
 ```
 
 ### 2. Configure Postgres Connection
@@ -32,13 +38,13 @@ DATABASE_URL=postgres://username:password@localhost:5432/database
 Run the following command to generate migrations:
 
 ```bash
-deno run -A npm:drizzle-kit generate
+npx drizzle-kit generate
 ```
 
 Run the following command to apply migrations:
 
 ```bash
-deno run -A npm:drizzle-kit migrate
+npx drizzle-kit migrate
 ```
 
 ## Running the application
@@ -47,11 +53,11 @@ deno run -A npm:drizzle-kit migrate
 
 ```bash
 cd /api
-deno task dev
+npm run dev
 ```
 
 ## To start the frontend:
 ```bash
 cd /web
-deno task dev
+npm run dev
 ```
