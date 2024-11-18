@@ -44,7 +44,7 @@ deno run -A npm:drizzle-kit migrate
 ## Running the application
 
 #adding 'hello world' to test environment integration
-"hello world"
+"hello world!"
 
 ## To start the API:
 
