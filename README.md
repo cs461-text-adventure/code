@@ -49,6 +49,9 @@ npx drizzle-kit migrate
 
 ## Running the application
 
+#adding 'hello world' to test environment integration
+"hello world!"
+
 ## To start the API:
 
 ```bash
