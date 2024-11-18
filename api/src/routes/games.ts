@@ -58,8 +58,18 @@ router.delete("/:id", async (req, res) => {
   // TODO: ADD AUTHENTICATION
   // TODO: ADD INPUT VALIDATION
   const id = req.params.id;
-  await db.delete(games).where(eq(games.id, id));
-  res.status(204).send();
+
+  // Attempt to delete the game with the given ID
+  const deleted = await db.delete(games).where(eq(games.id, id));
+
+  if (deleted) {
+    // Respond with a success message if the game was deleted
+    res.status(200).json({ message: `Game with ID ${id} successfully deleted.` });
+  } else {
+    // Respond with an error message if the game was not found
+    res.status(404).json({ error: `Game with ID ${id} not found.` });
+  }
 });
+
 
 export default router;
