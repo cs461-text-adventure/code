@@ -6,8 +6,21 @@ import { games } from "../db/schema";
 
 const router = express.Router();
 
+// API key middleware
+const apiKey = process.env.API_KEY || 'YOUR_SECRET_KEY'; 
+
+const authenticate = (req: express.Request, res: express.Response, next: express.NextFunction) => {
+  const authHeader = req.headers['authorization'];
+
+  if (!authHeader || authHeader !== `Bearer ${apiKey}`) {
+    return res.status(401).json({ error: 'Unauthorized' });
+  }
+  
+  next(); 
+};
+
 // CREATE
-router.post("/", async (req, res) => {
+router.post("/", authenticate, async (req, res) => {
   // TODO: ADD AUTHENTICATION
   // TODO: ADD INPUT VALIDATION
   const { name, data } = req.body;
@@ -37,7 +50,7 @@ router.get("/:id", async (req, res) => {
 });
 
 // UPDATE
-router.patch("/:id", async (req, res) => {
+router.patch("/:id", authenticate, async (req, res) => {
   // TODO: ADD AUTHENTICATION
   // TODO: ADD INPUT VALIDATION
   const { name, data } = req.body;
@@ -54,7 +67,7 @@ router.patch("/:id", async (req, res) => {
 });
 
 // DELETE
-router.delete("/:id", async (req, res) => {
+router.delete("/:id", authenticate, async (req, res) => {
   // TODO: ADD AUTHENTICATION
   // TODO: ADD INPUT VALIDATION
   const id = req.params.id;
