@@ -1,5 +1,3 @@
-import { redirect } from "next/navigation";
-
 export default async function Games({
   params,
 }: {
@@ -8,21 +6,21 @@ export default async function Games({
   const id = (await params).id;
 
   // TODO: ENSURE FETCH RUNS WITHOUT ERROR
-  let inviteResponse = await fetch(
+  const inviteResponse = await fetch(
     process.env.NEXT_PUBLIC_API_URL + "/invite/" + id,
     {
       method: "GET",
     },
   );
   console.log(inviteResponse);
-  
+
   if (!inviteResponse.ok) {
-    return(
+    return (
       <main>
         <p>Game not found</p>
         {/* TODO: Change error message */}
       </main>
-    )
+    );
   }
 
   const inviteData = await inviteResponse.json();
@@ -35,12 +33,12 @@ export default async function Games({
   );
 
   if (!gameResponse.ok) {
-    return(
+    return (
       <main>
         <p>Game not found</p>
         {/* TODO: Change error message */}
       </main>
-    )
+    );
   }
 
   const gameData = await gameResponse.json();

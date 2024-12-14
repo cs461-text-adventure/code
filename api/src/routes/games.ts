@@ -1,17 +1,22 @@
 import "dotenv/config";
 import express from "express";
 import { eq } from "drizzle-orm";
-import { db } from "../db";
-import { games } from "../db/schema";
+import { db } from "@/db/index";
+import { games } from "@/db/schema";
+import { authenticate } from "@/lib/middleware";
 
 const router = express.Router();
 
 // CREATE
-router.post("/", async (req, res) => {
-  // TODO: ADD AUTHENTICATION
+router.post("/", authenticate, async (req, res) => {
   // TODO: ADD INPUT VALIDATION
+
+  // Get user session
+  const session = req.session;
+  const userId = session!.user.id;
+
   const { name, data } = req.body;
-  const game: typeof games.$inferInsert = { name, data };
+  const game: typeof games.$inferInsert = { name, data, userId };
   const [newGame] = await db.insert(games).values(game).returning();
   res.status(201).json(newGame);
 });

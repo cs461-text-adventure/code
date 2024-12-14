@@ -1,58 +1,89 @@
-import express from "express";
+import express, { Request, Response } from "express";
 import { eq } from "drizzle-orm";
-import { db } from "../db";
-import { invites } from "../db/schema";
+import { db } from "@/db/index";
+import { games, invites } from "@/db/schema";
+import { authenticate } from "@/lib/middleware";
 
 const router = express.Router();
 
-router.post("/", async (req, res) => {
-    const { gameId, expiration } = req.body;
-    
-    // Validate the input
-    if (!gameId || !expiration) {
-        res.status(400).json({ message: "Game and expiry are required" }); // TODO: Change error message
-        return;
-    }
+/**
+ * @openapi
+ * /:
+ *   get:
+ *     description: Welcome to swagger-jsdoc!
+ *     responses:
+ *       200:
+ *         description: Returns a mysterious string.
+ */
+router.post("/", authenticate, async (req: Request, res: Response) => {
+  // Get the user session:
+  const session = req.session;
+  const userId = session!.user.id;
 
-    // Get the expiration date
-    const currentTime = new Date();
-    const expirationDate = new Date(currentTime.getTime() + expiration * 1000);
-    
-    // Insert the newly created invite into the database
-    const invite: typeof invites.$inferInsert = { gameId, expiration: expirationDate };
-    const inviteId = (await db.insert(invites).values(invite).returning({ id: invites.id }))[0].id;
+  const { gameId, expiration } = req.body;
 
-    // Return the invite
-    res.status(201).json(`${process.env.DOMAIN}/play/${inviteId}`);
-})
+  // Validate the input
+  if (!gameId || !expiration) {
+    res.status(400).json({ message: "Game and expiry are required" }); // TODO: Change error message
+    return;
+  }
+
+  // Ensure game belongs to the current user
+  const game = await db.select().from(games).where(eq(games.id, gameId));
+  if (game[0].userId != userId) {
+    res.status(403).json({ message: "Unauthorized" }); // TODO: Change error message
+    return;
+  }
+
+  // Get the expiration date
+  const currentTime = new Date();
+  const expirationDate = new Date(currentTime.getTime() + expiration * 1000);
+
+  // Insert the newly created invite into the database
+  const invite: typeof invites.$inferInsert = {
+    gameId,
+    expiration: expirationDate,
+    userId,
+  };
+  const inviteId = (
+    await db.insert(invites).values(invite).returning({ id: invites.id })
+  )[0].id;
+
+  // Return the invite
+  res.status(201).json(`${process.env.BETTER_AUTH_URL}/play/${inviteId}`);
+});
 
 router.get("/:id", async (req, res) => {
-    // TODO: ADD INPUT VALIDATION
-    const id = req.params.id;
-    
-    // Validate input
-    if (!id) {
-        res.status(400).json({ error: "Invalid invite ID" }); // TODO: CHANGE ERROR MESSAGE
-        return
-    }
-    
-    const inviteResult = await db.select().from(invites).where(eq(invites.id, id));
-    const invite = inviteResult[0];
-    
-    if (!invite) {
-        res.status(404).json({ error: "invite not found" }); // TODO: CHANGE ERROR MESSAGE
-        return
-    }
-    
-    const currentTime = new Date();
-    if (currentTime > invite.expiration) {
-        // Delete the expired invite from the database
-        await db.delete(invites).where(eq(invites.id, id));
-        res.status(410).json({ error: "invite has expired" });  // TODO: CHANGE ERROR MESSAGE
-        return
-    }
+  // TODO: ADD INPUT VALIDATION
 
-    res.send({ gameId: invite.gameId });
+  const id = req.params.id;
+
+  // Validate input
+  if (!id) {
+    res.status(400).json({ error: "Invalid invite ID" }); // TODO: CHANGE ERROR MESSAGE
+    return;
+  }
+
+  const inviteResult = await db
+    .select()
+    .from(invites)
+    .where(eq(invites.id, id));
+  const invite = inviteResult[0];
+
+  if (!invite) {
+    res.status(404).json({ error: "invite not found" }); // TODO: CHANGE ERROR MESSAGE
+    return;
+  }
+
+  const currentTime = new Date();
+  if (currentTime > invite.expiration) {
+    // Delete the expired invite from the database
+    await db.delete(invites).where(eq(invites.id, id));
+    res.status(410).json({ error: "invite has expired" }); // TODO: CHANGE ERROR MESSAGE
+    return;
+  }
+
+  res.send({ gameId: invite.gameId });
 });
 
 export default router;
