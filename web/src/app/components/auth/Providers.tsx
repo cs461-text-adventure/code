@@ -2,7 +2,7 @@
 
 import { authClient } from "@/lib/auth-client";
 
-export default function Providers() {
+export default function OAuthProviders() {
   async function signInWithProvider(
     provider:
       | "github"
@@ -25,7 +25,7 @@ export default function Providers() {
   }
 
   return (
-    <div className="flex flex-row justify-center gap-4 mt-4">
+    <div className="flex flex-row justify-center gap-4">
       <button
         className="w-10 h-10 text-center flex justify-center border border-gray-300 rounded-lg dark:border-gray-800 text-[#5865F2] dark:bg-black dark:text-white"
         aria-label="Sign in with Discord"

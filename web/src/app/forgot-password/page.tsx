@@ -2,31 +2,36 @@
 import { FormEvent, useState } from "react";
 import Link from "next/link";
 import { authClient } from "@/lib/auth-client";
-import ErrorComponent from "@/components/auth/error";
+import AuthError from "@/components/auth/error";
 
 export default function ResetPassword() {
-  const [step, setStep] = useState(2);
-  const [email, setEmail] = useState("test@gmail.com");
+  const [step, setStep] = useState(1);
+  const [email, setEmail] = useState("");
   const [errorMessage, setErrorMessage] = useState("");
 
   async function handleEmailSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
 
     const formData = new FormData(event.currentTarget);
-    const emailInput = formData.get("email") as string;
-    setEmail(emailInput);
+    const emailValue = formData.get("email") as string;
+    setEmail(emailValue);
 
     try {
-      console.log(`DA EMAIL: ${email}`)
-      const {data, error} = await authClient.emailOtp.sendVerificationOtp({
-        email: email,
-        type: "forget-password"
-      })
+      const { error } = await authClient.forgetPassword({
+        email: emailValue,
+        redirectTo: "/reset-password",
+      });
       if (error) throw new Error(error.message);
       setStep(2);
-    } catch (error: any) {
-      console.log(error)
-      setErrorMessage(error.message || "An error occurred. Please try again.");
+    } catch (error) {
+      console.log(error);
+      if (error instanceof Error) {
+        setErrorMessage(
+          error.message || "An error occurred. Please try again.",
+        );
+      } else {
+        setErrorMessage("An error occurred. Please try again.");
+      }
     }
   }
 
@@ -55,12 +60,13 @@ export default function ResetPassword() {
 
   function renderEmailInput() {
     return (
-      <div className="p-8 rounded-3xl dark:bg-slate-900 bg-white md:w-[26rem] w-full text-md border border-gray-300 dark:border-gray-800">
-        {errorMessage && <ErrorComponent message={errorMessage} />}
-        <h1 className="text-lg text-center font-bold">Reset Your Password</h1>
+      <div className="p-8 rounded-3xl dark:bg-slate-900 bg-white sm:w-[26rem] min-w-64 w-[calc(100vw-32px)] text-md border border-gray-300 dark:border-gray-800">
+        {errorMessage && (
+          <AuthError className="mt-4 mb-4">{errorMessage}</AuthError>
+        )}
+        <h1 className="text-lg text-center font-bold">Forgot Password</h1>
         <p className="mb-8 text-sm text-gray-500 text-center">
-          Enter your {process.env.NEXT_PUBLIC_APP_NAME} email address to receive
-          a reset link.
+          Enter your email address to receive a reset link.
         </p>
 
         <form className="mt-4 flex flex-col" onSubmit={handleEmailSubmit}>
@@ -129,16 +135,20 @@ export default function ResetPassword() {
   function renderConfirmation() {
     return (
       <div>
-        <div className="p-8 md:rounded-3xl dark:bg-slate-900 bg-white md:w-[26rem] w-full text-md md:border border-gray-300 dark:border-gray-800">
-          <h1 className="text-lg text-center font-bold">Check Your Inbox</h1>
+        <div className="p-8 rounded-3xl dark:bg-slate-900 bg-white sm:w-[26rem] min-w-64 w-[calc(100vw-32px)] text-md border border-gray-300 dark:border-gray-800">
+          <h1 className="text-lg text-center font-bold mb-6">
+            Check Your Inbox
+          </h1>
           <p className="text-sm text-gray-500 text-center">
-          Please check your inbox for a reset link and click on the
-          link to complete the registration process.
-            We sent a reset link to <span className="font-semibold text-black">{email}</span>.
+            A reset link was sent to{" "}
+            <span className="font-bold text-black dark:text-white">
+              {email}
+            </span>
+            . Please visit your inbox and click the link to reset your password.
           </p>
         </div>
       </div>
-    )
+    );
   }
 
   return (

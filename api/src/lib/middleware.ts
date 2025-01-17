@@ -13,7 +13,7 @@ export const authenticate = async (
     });
 
     if (!session) {
-      res.status(401).json({ error: "Unauthorized" });
+      res.status(401).json({ error: "Unauthorized" }); // TODO: EDIT ERROR MESSAGE
       return;
     }
 
@@ -24,7 +24,7 @@ export const authenticate = async (
     next();
   } catch (error) {
     console.error("Authentication error:", error);
-    res.status(500).json({ error: "Internal Server Error" });
+    res.status(500).json({ error: "Internal Server Error" }); // TODO: EDIT ERROR MESSAGE
     return;
   }
 };

@@ -30,7 +30,6 @@ router.get("/", async (req, res) => {
 
 // READ
 router.get("/:id", async (req, res) => {
-  // TODO: ADD AUTHENTICATION
   // TODO: ADD INPUT VALIDATION
   const id = req.params.id;
   const game = await db.select().from(games).where(eq(games.id, id));

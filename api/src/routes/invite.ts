@@ -6,15 +6,6 @@ import { authenticate } from "@/lib/middleware";
 
 const router = express.Router();
 
-/**
- * @openapi
- * /:
- *   get:
- *     description: Welcome to swagger-jsdoc!
- *     responses:
- *       200:
- *         description: Returns a mysterious string.
- */
 router.post("/", authenticate, async (req: Request, res: Response) => {
   // Get the user session:
   const session = req.session;
@@ -28,9 +19,9 @@ router.post("/", authenticate, async (req: Request, res: Response) => {
     return;
   }
 
-  // Ensure game belongs to the current user
+  // Ensure game exists and belongs to the current user
   const game = await db.select().from(games).where(eq(games.id, gameId));
-  if (game[0].userId != userId) {
+  if (!game.length || game[0].userId != userId) {
     res.status(403).json({ message: "Unauthorized" }); // TODO: Change error message
     return;
   }
@@ -38,6 +29,8 @@ router.post("/", authenticate, async (req: Request, res: Response) => {
   // Get the expiration date
   const currentTime = new Date();
   const expirationDate = new Date(currentTime.getTime() + expiration * 1000);
+
+  // TODO: Allow for persistent invites
 
   // Insert the newly created invite into the database
   const invite: typeof invites.$inferInsert = {
@@ -50,7 +43,7 @@ router.post("/", authenticate, async (req: Request, res: Response) => {
   )[0].id;
 
   // Return the invite
-  res.status(201).json(`${process.env.BETTER_AUTH_URL}/play/${inviteId}`);
+  res.status(201).json(`${process.env.ORIGIN}/play/${inviteId}`);
 });
 
 router.get("/:id", async (req, res) => {
