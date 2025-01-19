@@ -1,0 +1,335 @@
+openapi: 3.0.3
+info:
+  title: Text Adventure API
+  description: |-
+    API for Text Adventure website.
+  termsOfService: http://localhost/terms/
+  license:
+    name: Apache 2.0
+    url: http://www.apache.org/licenses/LICENSE-2.0.html
+  version: 1.0.0
+servers:
+  - url: http://localhost/api
+tags:
+  - name: invite
+    description: Operations related to game invites
+  - name: games
+    description: Operations related to games
+paths:
+  /invite:
+    post:
+      tags:
+        - invite
+      summary: /invite
+      description: Create a new game invite
+      security:
+        - cookieAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/Invite"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Invite"
+        "400":
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "..."
+        "403":
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "..."
+  /invite/{id}:
+    get:
+      tags:
+        - invite
+      summary: /invite/:id
+      description: Retrieve details of a specific invite using its unique ID.
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: The ID of the invite being accessed.
+          schema:
+            type: string
+            format: uuid
+            example: 2444546d-b2fc-4c63-9615-883a49057a7f
+      responses:
+        "200":
+          description: OK
+          application/json:
+            schema:
+              type: object
+              properties:
+                gameId:
+                  type: string
+                  format: uuid
+                  example: 2444546d-b2fc-4c63-9615-883a49057a7f
+        "400":
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "..."
+        "404":
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "..."
+        "410":
+          description: Gone
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "..."
+  /games:
+    get:
+      tags:
+        - games
+      summary: /games
+      description: Gets all public games
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "..."
+    post:
+      tags:
+        - games
+      summary: /games
+      description: Create a new game
+      security:
+        - cookieAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/Game"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Game"
+        "400":
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "..."
+        "403":
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "..."
+  /games/{id}:
+    get:
+      tags:
+        - games
+      summary: /games/:id
+      description: Retrieve details of a game using its unique ID.
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: The ID of the game being accessed.
+          schema:
+            type: string
+            format: uuid
+            example: 2444546d-b2fc-4c63-9615-883a49057a7f
+      responses:
+        "200":
+          description: OK
+          application/json:
+            schema:
+              type: object
+              properties:
+                gameId:
+                  type: string
+                  format: uuid
+                  example: 2444546d-b2fc-4c63-9615-883a49057a7f
+        "400":
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "..."
+        "404":
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "..."
+    patch:
+      tags:
+        - games
+      summary: /games/:id
+      description: Update details of a game using its unique ID.
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: The ID of the game being accessed.
+          schema:
+            type: string
+            format: uuid
+            example: 2444546d-b2fc-4c63-9615-883a49057a7f
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/Game"
+      responses:
+        "200":
+          description: OK
+          application/json:
+            schema:
+              type: object
+              properties:
+                gameId:
+                  type: string
+                  format: uuid
+                  example: 2444546d-b2fc-4c63-9615-883a49057a7f
+        "400":
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "..."
+        "403":
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "..."
+    delete:
+      tags:
+        - games
+      summary: /games/:id
+      description: Delete a game using its unique ID.
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: The ID of the game being accessed.
+          schema:
+            type: string
+            format: uuid
+            example: 2444546d-b2fc-4c63-9615-883a49057a7f
+      responses:
+        "204":
+          description: No Content
+        "403":
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "..."
+components:
+  securitySchemes:
+    cookieAuth:
+      type: apiKey
+      in: cookie
+      name: better-auth.session_token
+  schemas:
+    Invite:
+      type: object
+      properties:
+        gameId:
+          type: string
+          format: uuid
+          description: The ID of the game for which to create an invite.
+          example: 2444546d-b2fc-4c63-9615-883a49057a7f
+          required: true
+        expiration:
+          type: integer
+          format: int64
+          description: The expiration time for the invite in seconds.
+          example: 3600
+    Game:
+      type: object
+      properties:
+        name:
+          type: string
+          description: The name of the game.
+          example: "Zork"
+          required: True
+        data:
+          type: object
+          description: The game data.
+          required: true
+  security:
+    - cookieAuth: []
+# /games
+# GET /games/:id
+# PATCH /games/:id
+# DELETE /games/:id

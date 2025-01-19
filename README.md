@@ -64,3 +64,10 @@ npm run dev
 cd /web
 npm run dev
 ```
+
+# Documentation
+
+```
+/api/reference
+/api/auth/reference
+```

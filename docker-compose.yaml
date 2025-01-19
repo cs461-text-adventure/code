@@ -1,0 +1,63 @@
+services:
+  
+  frontend:
+    image: nextjs-docker # ghcr.io/awesomepandapig/auth-frontend:main
+    restart: always
+    ports:
+      - 3000:3000
+    networks:
+      - frontend
+      - backend
+
+  backend:
+    image: expressjs-docker
+    restart: always
+    ports:
+      - 8000:8000
+    environment:
+      - APP_NAME=${APP_NAME}
+      - ORIGIN=${ORIGIN}
+      - DATABASE_URL=${DATABASE_URL}
+      - BETTER_AUTH_URL=${BETTER_AUTH_URL}
+      - BETTER_AUTH_SECRET=${BETTER_AUTH_SECRET}
+      - DISCORD_CLIENT_ID=${DISCORD_CLIENT_ID}
+      - DISCORD_CLIENT_SECRET=${DISCORD_CLIENT_SECRET}
+      - RESEND_API_KEY=${RESEND_API_KEY}
+      - RESEND_EMAIL=${RESEND_EMAIL}
+    networks:
+      - backend
+
+  proxy:
+    image: nginx
+    restart: always
+    ports:
+    - 80:80
+    - 443:443
+    volumes:
+    - ./nginx.conf:/etc/nginx/nginx.conf
+    networks:
+      - frontend
+      - backend
+
+  db:
+    image: postgres
+    restart: always
+    ports:
+      - 5432:5432
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    environment:
+      - POSTGRES_DB=${DATABASE_DB}
+      - POSTGRES_USER=${DATABASE_USER}
+      - POSTGRES_PASSWORD=${DATABASE_PASSWORD}
+    networks:
+      - backend
+
+volumes:
+  pgdata:
+
+networks:
+  frontend:
+    driver: bridge
+  backend:
+    driver: bridge

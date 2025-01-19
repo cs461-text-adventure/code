@@ -1,0 +1,14 @@
+{
+  "compilerOptions": {
+    "baseUrl": "src/",
+    "paths": {
+      "@/db/*": ["db/*"],
+      "@/lib/*": ["lib/*"],
+      "@/email/*": ["email/*"]
+    },
+    "strict": true,
+    "noEmit": true,
+    "declaration": false,
+    "esModuleInterop": true
+  }
+}
