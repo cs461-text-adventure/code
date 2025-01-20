@@ -10,7 +10,7 @@
     "fmt": "npx prettier . --write"
   },
   "dependencies": {
-    "better-auth": "^1.0.19",
+    "better-auth": "^1.1.6",
     "next": "15.0.4",
     "react": "19.0.0",
     "react-dom": "19.0.0"
