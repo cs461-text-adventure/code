@@ -1,21 +1,21 @@
 'use client';
 
 /**
- * Game Creation Form Component
+ * Game Creation Page
  * 
- * This component provides a form interface for creating new games. It includes:
+ * This page provides a form interface for creating new games. It includes:
  * - Game name input field
  * - JSON data input field with validation
  * - Error handling for invalid JSON and API responses
- * - Authentication state handling
+ * - Session expiration handling
  * - Loading states during form submission
  * 
- * The form integrates with the backend API and requires authentication to create games.
- * If a user is not authenticated, they are prompted to sign in.
+ * Note: This page is protected by authentication middleware.
+ * Users with expired sessions will be prompted to log in again.
  */
 
 import { useState } from 'react';
-import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 
 export default function NewGame() {
   // Form state management
@@ -71,7 +71,7 @@ export default function NewGame() {
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
         if (response.status === 401) {
-          throw new Error('Please sign in to create a game');
+          throw new Error('Your session has expired. Please log in again to continue.');
         }
         throw new Error(errorData.error || 'Failed to create game');
       }
@@ -98,15 +98,6 @@ export default function NewGame() {
   return (
     // Main container with responsive padding
     <div className="min-h-screen bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
-      {/* Sign in button - positioned in top right corner */}
-      <div className="absolute top-4 right-4">
-        <Link
-          href="/login"
-          className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-blue-500 hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
-        >
-          Sign in
-        </Link>
-      </div>
       {/* Form container with max width for readability */}
       <div className="max-w-md mx-auto">
         {/* Form header */}
