@@ -3,10 +3,15 @@
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 
+interface GameData {
+  difficulty: string;
+  settings: Record<string, unknown>;
+}
+
 interface Game {
   id: string;
   name: string;
-  data: any;
+  data: GameData;
 }
 
 export default function Dashboard() {
@@ -28,7 +33,8 @@ export default function Dashboard() {
       }
       const data = await response.json();
       setGames(data);
-    } catch (err) {
+    } catch (error) {
+      console.error('Failed to load games:', error);
       setError('Failed to load games');
     } finally {
       setLoading(false);
@@ -48,7 +54,8 @@ export default function Dashboard() {
       }
       // Remove game from state
       setGames(games.filter(game => game.id !== gameId));
-    } catch (err) {
+    } catch (error) {
+      console.error('Failed to delete game:', error);
       setError('Failed to delete game');
     }
   };
@@ -84,7 +91,7 @@ export default function Dashboard() {
 
         {games.length === 0 ? (
           <div className="text-center py-12">
-            <p className="text-gray-500 mb-4">You haven't created any games yet.</p>
+            <p className="text-gray-500 mb-4">You have not created any games yet.</p>
             <Link
               href="/game/new"
               className="text-blue-600 hover:text-blue-800"

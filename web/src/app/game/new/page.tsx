@@ -15,7 +15,6 @@
  */
 
 import { useState } from 'react';
-import { useRouter } from 'next/navigation';
 
 export default function NewGame() {
   // Form state management
@@ -77,7 +76,7 @@ export default function NewGame() {
       }
 
       // On success, clear form and show success message
-      const newGame = await response.json();
+      await response.json(); // Consume response but don't store it
       setName('');
       setData('');
       setError('Game created successfully!');
