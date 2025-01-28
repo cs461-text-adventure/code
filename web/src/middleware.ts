@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 
 export default async function authMiddleware(request: NextRequest) {
   // Validate the access token
-  const apiUrl = process.env.NEXT_PUBLIC_API_URL + "/auth/get-session";
+  const apiUrl = "http://localhost:8080/api/auth/get-session";
   const response = await fetch(apiUrl, {
     method: "GET",
     headers: {
