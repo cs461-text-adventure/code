@@ -12,6 +12,7 @@
 
 import { useEffect, useState } from 'react';
 import ShareModal from '../components/ShareModal';
+import TestGameModal from '../components/TestGameModal';
 import Link from 'next/link';
 
 /**
@@ -72,6 +73,7 @@ export default function Dashboard() {
   const [loading, setLoading] = useState(true);
   const [shareModalOpen, setShareModalOpen] = useState(false);
   const [selectedGame, setSelectedGame] = useState<Game | null>(null);
+  const [testModalOpen, setTestModalOpen] = useState(false);
 
   useEffect(() => {
     // Mock games data for development demo
@@ -256,12 +258,23 @@ export default function Dashboard() {
                   </pre>
                 </div>
                 <div className="mt-4 flex justify-end">
-                  <Link
-                    href={`/play/${game.id}`}
-                    className="inline-flex items-center px-3 py-1 border border-transparent text-sm font-medium rounded-md text-blue-700 bg-blue-100 hover:bg-blue-200"
-                  >
-                    Play Game
-                  </Link>
+                  <div className="flex space-x-2">
+                    <button
+                      onClick={() => {
+                        setSelectedGame(game);
+                        setTestModalOpen(true);
+                      }}
+                      className="inline-flex items-center px-3 py-1 border border-transparent text-sm font-medium rounded-md text-gray-700 bg-gray-100 hover:bg-gray-200"
+                    >
+                      Test Game
+                    </button>
+                    <Link
+                      href={`/play/${game.id}`}
+                      className="inline-flex items-center px-3 py-1 border border-transparent text-sm font-medium rounded-md text-blue-700 bg-blue-100 hover:bg-blue-200"
+                    >
+                      Play Game
+                    </Link>
+                  </div>
                 </div>
               </div>
             ))}
@@ -273,6 +286,17 @@ export default function Dashboard() {
           isOpen={shareModalOpen}
           onClose={() => {
             setShareModalOpen(false);
+            setSelectedGame(null);
+          }}
+          gameId={selectedGame.id}
+          gameName={selectedGame.name}
+        />
+      )}
+      {selectedGame && (
+        <TestGameModal
+          isOpen={testModalOpen}
+          onClose={() => {
+            setTestModalOpen(false);
             setSelectedGame(null);
           }}
           gameId={selectedGame.id}
