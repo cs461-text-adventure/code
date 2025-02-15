@@ -1,7 +1,6 @@
 "use client";
 
 import { FormEvent, useState, ReactElement } from "react";
-import { useRouter } from "next/navigation";
 import Link from "next/link";
 
 import AuthMain from "@/components/auth/AuthMain";
@@ -15,7 +14,6 @@ import AuthFooter from "@/components/auth/AuthFooter";
 import SignupPill from "@/components/auth/SignupPill";
 
 export default function Login() {
-  const router = useRouter();
   const [errorMessage, setErrorMessage] = useState<ReactElement>();
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
