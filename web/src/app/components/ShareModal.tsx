@@ -1,7 +1,24 @@
 'use client';
 
+/**
+ * ShareModal Component
+ * 
+ * A reusable modal component for sharing game links. Features include:
+ * - Copy to clipboard functionality
+ * - Keyboard support (Escape to close)
+ * - Focus management
+ * - Visual feedback for actions
+ */
+
 import { useEffect, useRef } from 'react';
 
+/**
+ * Props for the ShareModal component
+ * @property isOpen - Controls the visibility of the modal
+ * @property onClose - Callback function to handle modal closure
+ * @property gameId - Unique identifier of the game being shared
+ * @property gameName - Display name of the game
+ */
 interface ShareModalProps {
   isOpen: boolean;
   onClose: () => void;
@@ -9,6 +26,10 @@ interface ShareModalProps {
   gameName: string;
 }
 
+/**
+ * A modal component for sharing game links
+ * Provides a user interface for copying and sharing game URLs
+ */
 export default function ShareModal({ isOpen, onClose, gameId, gameName }: ShareModalProps) {
   const modalRef = useRef<HTMLDivElement>(null);
   const gameUrl = typeof window !== 'undefined' ? `${window.location.origin}/play/${gameId}` : '';
@@ -33,6 +54,10 @@ export default function ShareModal({ isOpen, onClose, gameId, gameName }: ShareM
 
   if (!isOpen) return null;
 
+  /**
+   * Handles copying the game URL to clipboard
+   * Shows a temporary success message upon successful copy
+   */
   const handleCopy = async () => {
     try {
       await navigator.clipboard.writeText(gameUrl);

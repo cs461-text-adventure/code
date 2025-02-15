@@ -1,14 +1,34 @@
 'use client';
 
+/**
+ * Dashboard Component
+ * 
+ * Main interface for managing games. Features include:
+ * - Game listing with visibility controls
+ * - Sharing functionality
+ * - Game deletion
+ * - Create new game option
+ */
+
 import { useEffect, useState } from 'react';
 import ShareModal from '../components/ShareModal';
 import Link from 'next/link';
 
+/**
+ * Represents the structure of game data
+ */
 interface GameData {
   difficulty: string;
   settings: Record<string, unknown>;
 }
 
+/**
+ * Represents a complete game entity
+ * @property id - Unique identifier for the game
+ * @property name - Display name of the game
+ * @property data - Game configuration and settings
+ * @property visibility - Current visibility status of the game
+ */
 interface Game {
   id: string;
   name: string;
@@ -16,12 +36,22 @@ interface Game {
   visibility: 'public' | 'private';
 }
 
+/**
+ * Props for the VisibilityToggle component
+ * @property visibility - Current visibility state
+ * @property onToggle - Callback function when visibility is toggled
+ * @property className - Optional CSS classes
+ */
 interface VisibilityToggleProps {
   visibility: 'public' | 'private';
   onToggle: () => void;
   className?: string;
 }
 
+/**
+ * Button component for toggling game visibility
+ * Provides visual feedback of current visibility state
+ */
 const VisibilityToggle: React.FC<VisibilityToggleProps> = ({ visibility, onToggle, className = '' }) => (
   <button
     onClick={onToggle}
@@ -90,6 +120,11 @@ export default function Dashboard() {
     setLoading(false);
   }, []);
 
+  /**
+   * Handles the deletion of a game
+   * Shows confirmation dialog and provides error feedback
+   * @param gameId - ID of the game to delete
+   */
   const handleDelete = async (gameId: string) => {
     if (!confirm('Are you sure you want to delete this game?')) return;
 
