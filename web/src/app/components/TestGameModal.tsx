@@ -43,14 +43,17 @@ export default function TestGameModal({ isOpen, onClose, gameId, gameName }: Tes
       document.addEventListener('keydown', handleEscape);
       document.body.style.overflow = 'hidden';
       // Initialize test environment
-      setTestOutput(['Test environment initialized...', `Loading game: ${gameName}`]);
+      setTestOutput([
+        'Test environment initialized...',
+        `Loading game: ${gameName} (ID: ${gameId})`
+      ]);
     }
 
     return () => {
       document.removeEventListener('keydown', handleEscape);
       document.body.style.overflow = 'unset';
     };
-  }, [isOpen, onClose, gameName]);
+  }, [isOpen, onClose, gameName, gameId]);
 
   if (!isOpen) return null;
 
@@ -65,8 +68,8 @@ export default function TestGameModal({ isOpen, onClose, gameId, gameName }: Tes
     // Add command to output
     setTestOutput(prev => [...prev, `> ${command}`]);
 
-    // Process command (mock implementation)
-    const response = `Executed command: ${command}`;
+    // Process command with game context
+    const response = `Executing command "${command}" for game ${gameId}...`;
     setTestOutput(prev => [...prev, response]);
     
     // Clear command input
@@ -89,7 +92,7 @@ export default function TestGameModal({ isOpen, onClose, gameId, gameName }: Tes
           </svg>
         </button>
 
-        <h2 className="text-xl font-semibold mb-4">Testing "{gameName}"</h2>
+        <h2 className="text-xl font-semibold mb-4">Testing &quot;{gameName}&quot;</h2>
         
         <div className="mb-6">
           <div className="bg-gray-900 rounded-lg p-4 h-64 overflow-y-auto text-gray-100 font-mono text-sm">
@@ -122,7 +125,12 @@ export default function TestGameModal({ isOpen, onClose, gameId, gameName }: Tes
         <div className="mt-6 flex justify-between">
           <button
             onClick={() => {
-              setTestOutput(prev => [...prev, 'Resetting test environment...', 'Test environment initialized...', `Loading game: ${gameName}`]);
+              setTestOutput(prev => [
+                ...prev,
+                'Resetting test environment...',
+                'Test environment initialized...',
+                `Loading game: ${gameName} (ID: ${gameId})`
+              ]);
             }}
             className="px-4 py-2 text-sm font-medium text-blue-700 bg-blue-100 hover:bg-blue-200 rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
           >

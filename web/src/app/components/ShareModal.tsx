@@ -88,7 +88,7 @@ export default function ShareModal({ isOpen, onClose, gameId, gameName }: ShareM
           </svg>
         </button>
 
-        <h2 className="text-xl font-semibold mb-4">Share "{gameName}"</h2>
+        <h2 className="text-xl font-semibold mb-4">Share &quot;{gameName}&quot;</h2>
         
         <div className="mb-6">
           <label className="block text-sm font-medium text-gray-700 mb-2">
