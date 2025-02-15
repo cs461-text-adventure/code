@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import ShareModal from '../components/ShareModal';
 import Link from 'next/link';
 
 interface GameData {
@@ -39,6 +40,8 @@ export default function Dashboard() {
   const [games, setGames] = useState<Game[]>([]);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(true);
+  const [shareModalOpen, setShareModalOpen] = useState(false);
+  const [selectedGame, setSelectedGame] = useState<Game | null>(null);
 
   useEffect(() => {
     // Mock games data for development demo
@@ -162,7 +165,6 @@ export default function Dashboard() {
                       onToggle={async () => {
                         try {
                           const newVisibility = game.visibility === 'public' ? 'private' : 'public';
-                          // In a real app, this would be an API call
                           // await fetch(`/api/games/${game.id}/visibility`, {
                           //   method: 'PATCH',
                           //   body: JSON.stringify({ visibility: newVisibility }),
@@ -191,14 +193,8 @@ export default function Dashboard() {
                       </Link>
                       <button
                         onClick={() => {
-                          const url = `${window.location.origin}/play/${game.id}`;
-                          navigator.clipboard.writeText(url);
-                          // Show temporary success message
-                          const el = document.createElement('div');
-                          el.className = 'fixed bottom-4 right-4 bg-green-100 text-green-700 px-4 py-2 rounded-md shadow-lg';
-                          el.textContent = 'Game link copied to clipboard!';
-                          document.body.appendChild(el);
-                          setTimeout(() => el.remove(), 2000);
+                          setSelectedGame(game);
+                          setShareModalOpen(true);
                         }}
                         className="text-gray-400 hover:text-gray-500"
                         title="Share game"
@@ -237,6 +233,17 @@ export default function Dashboard() {
           </div>
         )}
       </div>
+      {selectedGame && (
+        <ShareModal
+          isOpen={shareModalOpen}
+          onClose={() => {
+            setShareModalOpen(false);
+            setSelectedGame(null);
+          }}
+          gameId={selectedGame.id}
+          gameName={selectedGame.name}
+        />
+      )}
     </div>
   );
 }
