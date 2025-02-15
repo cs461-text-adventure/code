@@ -12,7 +12,28 @@ interface Game {
   id: string;
   name: string;
   data: GameData;
+  visibility: 'public' | 'private';
 }
+
+interface VisibilityToggleProps {
+  visibility: 'public' | 'private';
+  onToggle: () => void;
+  className?: string;
+}
+
+const VisibilityToggle: React.FC<VisibilityToggleProps> = ({ visibility, onToggle, className = '' }) => (
+  <button
+    onClick={onToggle}
+    className={`px-2 py-1 rounded-md text-sm font-medium ${
+      visibility === 'public'
+        ? 'bg-green-100 text-green-800 hover:bg-green-200'
+        : 'bg-gray-100 text-gray-800 hover:bg-gray-200'
+    } ${className}`}
+    title={`Game is ${visibility}. Click to toggle visibility.`}
+  >
+    {visibility === 'public' ? 'Public' : 'Private'}
+  </button>
+);
 
 export default function Dashboard() {
   const [games, setGames] = useState<Game[]>([]);
@@ -20,26 +41,51 @@ export default function Dashboard() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetchGames();
-  }, []);
-
-  const fetchGames = async () => {
-    try {
-      const response = await fetch('/api/games', {
-        credentials: 'include',
-      });
-      if (!response.ok) {
-        throw new Error('Failed to fetch games');
+    // Mock games data for development demo
+    const mockGames: Game[] = [
+      {
+        id: '1',
+        name: 'Adventure Quest',
+        visibility: 'private',
+        data: {
+          difficulty: 'medium',
+          settings: {
+            maxPlayers: 4,
+            timeLimit: 3600,
+            checkpoints: true
+          }
+        }
+      },
+      {
+        id: '2',
+        name: 'Space Explorer',
+        visibility: 'public',
+        data: {
+          difficulty: 'hard',
+          settings: {
+            maxPlayers: 2,
+            timeLimit: 7200,
+            specialItems: ['jetpack', 'laser']
+          }
+        }
+      },
+      {
+        id: '3',
+        name: 'Puzzle Master',
+        visibility: 'private',
+        data: {
+          difficulty: 'easy',
+          settings: {
+            maxPlayers: 1,
+            timeLimit: 1800,
+            hints: true
+          }
+        }
       }
-      const data = await response.json();
-      setGames(data);
-    } catch (error) {
-      console.error('Failed to load games:', error);
-      setError('Failed to load games');
-    } finally {
-      setLoading(false);
-    }
-  };
+    ];
+    setGames(mockGames);
+    setLoading(false);
+  }, []);
 
   const handleDelete = async (gameId: string) => {
     if (!confirm('Are you sure you want to delete this game?')) return;
@@ -111,6 +157,28 @@ export default function Dashboard() {
                     {game.name}
                   </h2>
                   <div className="flex space-x-2">
+                    <VisibilityToggle
+                      visibility={game.visibility}
+                      onToggle={async () => {
+                        try {
+                          const newVisibility = game.visibility === 'public' ? 'private' : 'public';
+                          // In a real app, this would be an API call
+                          // await fetch(`/api/games/${game.id}/visibility`, {
+                          //   method: 'PATCH',
+                          //   body: JSON.stringify({ visibility: newVisibility }),
+                          // });
+                          
+                          setGames(games.map(g => 
+                            g.id === game.id 
+                              ? { ...g, visibility: newVisibility }
+                              : g
+                          ));
+                        } catch (error) {
+                          console.error('Failed to update visibility:', error);
+                          setError('Failed to update game visibility');
+                        }
+                      }}
+                    />
                     <div className="flex space-x-2">
                       <Link
                         href={`/game/${game.id}`}
