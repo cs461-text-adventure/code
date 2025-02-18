@@ -1,0 +1,1 @@
+ALTER TABLE "games" RENAME COLUMN "public" TO "isPublic";
