@@ -1,46 +1,132 @@
 'use client';
 
+/**
+ * Dashboard Component
+ * 
+ * Main interface for managing games. Features include:
+ * - Game listing with visibility controls
+ * - Sharing functionality
+ * - Game deletion
+ * - Create new game option
+ */
+
 import { useEffect, useState } from 'react';
+import ShareModal from '../components/ShareModal';
+import TestGameModal from '../components/TestGameModal';
 import Link from 'next/link';
 
+/**
+ * Represents the structure of game data
+ */
 interface GameData {
   difficulty: string;
   settings: Record<string, unknown>;
 }
 
+/**
+ * Represents a complete game entity
+ * @property id - Unique identifier for the game
+ * @property name - Display name of the game
+ * @property data - Game configuration and settings
+ * @property visibility - Current visibility status of the game
+ */
 interface Game {
   id: string;
   name: string;
   data: GameData;
+  visibility: 'public' | 'private';
 }
+
+/**
+ * Props for the VisibilityToggle component
+ * @property visibility - Current visibility state
+ * @property onToggle - Callback function when visibility is toggled
+ * @property className - Optional CSS classes
+ */
+interface VisibilityToggleProps {
+  visibility: 'public' | 'private';
+  onToggle: () => void;
+  className?: string;
+}
+
+/**
+ * Button component for toggling game visibility
+ * Provides visual feedback of current visibility state
+ */
+const VisibilityToggle: React.FC<VisibilityToggleProps> = ({ visibility, onToggle, className = '' }) => (
+  <button
+    onClick={onToggle}
+    className={`px-2 py-1 rounded-md text-sm font-medium ${
+      visibility === 'public'
+        ? 'bg-green-100 text-green-800 hover:bg-green-200'
+        : 'bg-gray-100 text-gray-800 hover:bg-gray-200'
+    } ${className}`}
+    title={`Game is ${visibility}. Click to toggle visibility.`}
+  >
+    {visibility === 'public' ? 'Public' : 'Private'}
+  </button>
+);
 
 export default function Dashboard() {
   const [games, setGames] = useState<Game[]>([]);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(true);
+  const [shareModalOpen, setShareModalOpen] = useState(false);
+  const [selectedGame, setSelectedGame] = useState<Game | null>(null);
+  const [testModalOpen, setTestModalOpen] = useState(false);
 
   useEffect(() => {
-    fetchGames();
+    // Mock games data for development demo
+    const mockGames: Game[] = [
+      {
+        id: '1',
+        name: 'Adventure Quest',
+        visibility: 'private',
+        data: {
+          difficulty: 'medium',
+          settings: {
+            maxPlayers: 4,
+            timeLimit: 3600,
+            checkpoints: true
+          }
+        }
+      },
+      {
+        id: '2',
+        name: 'Space Explorer',
+        visibility: 'public',
+        data: {
+          difficulty: 'hard',
+          settings: {
+            maxPlayers: 2,
+            timeLimit: 7200,
+            specialItems: ['jetpack', 'laser']
+          }
+        }
+      },
+      {
+        id: '3',
+        name: 'Puzzle Master',
+        visibility: 'private',
+        data: {
+          difficulty: 'easy',
+          settings: {
+            maxPlayers: 1,
+            timeLimit: 1800,
+            hints: true
+          }
+        }
+      }
+    ];
+    setGames(mockGames);
+    setLoading(false);
   }, []);
 
-  const fetchGames = async () => {
-    try {
-      const response = await fetch('/api/games', {
-        credentials: 'include',
-      });
-      if (!response.ok) {
-        throw new Error('Failed to fetch games');
-      }
-      const data = await response.json();
-      setGames(data);
-    } catch (error) {
-      console.error('Failed to load games:', error);
-      setError('Failed to load games');
-    } finally {
-      setLoading(false);
-    }
-  };
-
+  /**
+   * Handles the deletion of a game
+   * Shows confirmation dialog and provides error feedback
+   * @param gameId - ID of the game to delete
+   */
   const handleDelete = async (gameId: string) => {
     if (!confirm('Are you sure you want to delete this game?')) return;
 
@@ -111,6 +197,27 @@ export default function Dashboard() {
                     {game.name}
                   </h2>
                   <div className="flex space-x-2">
+                    <VisibilityToggle
+                      visibility={game.visibility}
+                      onToggle={async () => {
+                        try {
+                          const newVisibility = game.visibility === 'public' ? 'private' : 'public';
+                          // await fetch(`/api/games/${game.id}/visibility`, {
+                          //   method: 'PATCH',
+                          //   body: JSON.stringify({ visibility: newVisibility }),
+                          // });
+                          
+                          setGames(games.map(g => 
+                            g.id === game.id 
+                              ? { ...g, visibility: newVisibility }
+                              : g
+                          ));
+                        } catch (error) {
+                          console.error('Failed to update visibility:', error);
+                          setError('Failed to update game visibility');
+                        }
+                      }}
+                    />
                     <div className="flex space-x-2">
                       <Link
                         href={`/game/${game.id}`}
@@ -123,14 +230,8 @@ export default function Dashboard() {
                       </Link>
                       <button
                         onClick={() => {
-                          const url = `${window.location.origin}/play/${game.id}`;
-                          navigator.clipboard.writeText(url);
-                          // Show temporary success message
-                          const el = document.createElement('div');
-                          el.className = 'fixed bottom-4 right-4 bg-green-100 text-green-700 px-4 py-2 rounded-md shadow-lg';
-                          el.textContent = 'Game link copied to clipboard!';
-                          document.body.appendChild(el);
-                          setTimeout(() => el.remove(), 2000);
+                          setSelectedGame(game);
+                          setShareModalOpen(true);
                         }}
                         className="text-gray-400 hover:text-gray-500"
                         title="Share game"
@@ -157,18 +258,51 @@ export default function Dashboard() {
                   </pre>
                 </div>
                 <div className="mt-4 flex justify-end">
-                  <Link
-                    href={`/play/${game.id}`}
-                    className="inline-flex items-center px-3 py-1 border border-transparent text-sm font-medium rounded-md text-blue-700 bg-blue-100 hover:bg-blue-200"
-                  >
-                    Play Game
-                  </Link>
+                  <div className="flex space-x-2">
+                    <button
+                      onClick={() => {
+                        setSelectedGame(game);
+                        setTestModalOpen(true);
+                      }}
+                      className="inline-flex items-center px-3 py-1 border border-transparent text-sm font-medium rounded-md text-gray-700 bg-gray-100 hover:bg-gray-200"
+                    >
+                      Test Game
+                    </button>
+                    <Link
+                      href={`/play/${game.id}`}
+                      className="inline-flex items-center px-3 py-1 border border-transparent text-sm font-medium rounded-md text-blue-700 bg-blue-100 hover:bg-blue-200"
+                    >
+                      Play Game
+                    </Link>
+                  </div>
                 </div>
               </div>
             ))}
           </div>
         )}
       </div>
+      {selectedGame && (
+        <ShareModal
+          isOpen={shareModalOpen}
+          onClose={() => {
+            setShareModalOpen(false);
+            setSelectedGame(null);
+          }}
+          gameId={selectedGame.id}
+          gameName={selectedGame.name}
+        />
+      )}
+      {selectedGame && (
+        <TestGameModal
+          isOpen={testModalOpen}
+          onClose={() => {
+            setTestModalOpen(false);
+            setSelectedGame(null);
+          }}
+          gameId={selectedGame.id}
+          gameName={selectedGame.name}
+        />
+      )}
     </div>
   );
 }
