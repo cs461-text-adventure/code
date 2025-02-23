@@ -1,39 +1,39 @@
-'use client';
+"use client";
 
 /**
  * Game Creation Form Component
- * 
+ *
  * This component provides a form interface for creating new games. It includes:
  * - Game name input field
  * - JSON data input field with validation
  * - Error handling for invalid JSON and API responses
  * - Authentication state handling
  * - Loading states during form submission
- * 
+ *
  * The form integrates with the backend API and requires authentication to create games.
  * If a user is not authenticated, they are prompted to sign in.
  */
 
-import { useState } from 'react';
-import Link from 'next/link';
+import { useState } from "react";
+import Link from "next/link";
 
 export default function NewGame() {
   // Form state management
-  const [name, setName] = useState('');
-  const [data, setData] = useState('');
-  const [error, setError] = useState('');
+  const [name, setName] = useState("");
+  const [data, setData] = useState("");
+  const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
 
   // Event handlers for form inputs
   // Clear errors when user starts typing to provide immediate feedback
   const handleNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setName(e.target.value);
-    setError('');
+    setError("");
   };
 
   const handleDataChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     setData(e.target.value);
-    setError('');
+    setError("");
   };
 
   /**
@@ -47,7 +47,7 @@ export default function NewGame() {
    */
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setError('');
+    setError("");
     setIsLoading(true);
 
     try {
@@ -55,12 +55,12 @@ export default function NewGame() {
       const parsedData = JSON.parse(data);
 
       // Send POST request to create game
-      const response = await fetch('/api/games', {
-        method: 'POST',
+      const response = await fetch("/api/games", {
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
-        credentials: 'include', // Important for sending cookies
+        credentials: "include", // Important for sending cookies
         body: JSON.stringify({
           name,
           data: parsedData,
@@ -71,24 +71,24 @@ export default function NewGame() {
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
         if (response.status === 401) {
-          throw new Error('Please sign in to create a game');
+          throw new Error("Please sign in to create a game");
         }
-        throw new Error(errorData.error || 'Failed to create game');
+        throw new Error(errorData.error || "Failed to create game");
       }
 
       // On success, clear form and show success message
       const newGame = await response.json();
-      setName('');
-      setData('');
-      setError('Game created successfully!');
+      setName("");
+      setData("");
+      setError("Game created successfully!");
     } catch (err) {
       // Handle different types of errors
       if (err instanceof SyntaxError) {
-        setError('Invalid JSON data format');
+        setError("Invalid JSON data format");
       } else if (err instanceof Error) {
         setError(err.message);
       } else {
-        setError('Failed to create game. Please try again.');
+        setError("Failed to create game. Please try again.");
       }
     } finally {
       setIsLoading(false);
@@ -112,14 +112,19 @@ export default function NewGame() {
         {/* Form header */}
         <div className="text-center">
           <h1 className="text-3xl font-bold text-gray-900">Create New Game</h1>
-          <p className="mt-2 text-gray-600">Fill in the details below to create a new game</p>
+          <p className="mt-2 text-gray-600">
+            Fill in the details below to create a new game
+          </p>
         </div>
 
         {/* Game creation form */}
         <form onSubmit={handleSubmit} className="mt-8 space-y-6">
           {/* Game name input field */}
           <div>
-            <label htmlFor="name" className="block text-sm font-medium text-gray-700">
+            <label
+              htmlFor="name"
+              className="block text-sm font-medium text-gray-700"
+            >
               Game Name
             </label>
             <input
@@ -135,7 +140,10 @@ export default function NewGame() {
 
           {/* Game data input field - expects valid JSON */}
           <div>
-            <label htmlFor="data" className="block text-sm font-medium text-gray-700">
+            <label
+              htmlFor="data"
+              className="block text-sm font-medium text-gray-700"
+            >
               Game Data (JSON)
             </label>
             <textarea
@@ -155,22 +163,24 @@ export default function NewGame() {
               type="submit"
               disabled={isLoading}
               className={`w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white ${
-                isLoading 
-                  ? 'bg-indigo-400 cursor-not-allowed' 
-                  : 'bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500'
+                isLoading
+                  ? "bg-indigo-400 cursor-not-allowed"
+                  : "bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
               }`}
             >
-              {isLoading ? 'Creating...' : 'Create Game'}
+              {isLoading ? "Creating..." : "Create Game"}
             </button>
           </div>
-          
+
           {/* Error/Success message display */}
           {error && (
-            <div className={`mt-4 p-3 rounded ${
-              error.includes('successfully') 
-                ? 'bg-green-100 text-green-700' 
-                : 'bg-red-100 text-red-700'
-            }`}>
+            <div
+              className={`mt-4 p-3 rounded ${
+                error.includes("successfully")
+                  ? "bg-green-100 text-green-700"
+                  : "bg-red-100 text-red-700"
+              }`}
+            >
               {error}
             </div>
           )}
