@@ -3,7 +3,7 @@
 
 //import Link from 'next/link'
 
-import Logo from "./logo"
+import Logo from "./logo/logo"
 import NavigationLinks from './NavigationLinks';
 //import Logo from './Logo'
 
@@ -29,11 +29,16 @@ const Navbar: React.FC<NavbarProps> = ({
   menuItems = defaultMenuItems
 }) => {
   return (
-    <nav className="bg-white shadow-md">
+    <nav className="bg-white shadow-md mt-5 mb-5">
+
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        < div className="flex justify-between items-center py-4">
-          <Logo />
-          <NavigationLinks items={menuItems} />
+        <div className="flex justify-between items-center h-10">
+          <div className="flex-shrink-0">
+            <Logo />
+          </div>
+          <div className="flex justify-end">
+            <NavigationLinks items={menuItems} />
+          </div>
         </div>
       </div>
     </nav>

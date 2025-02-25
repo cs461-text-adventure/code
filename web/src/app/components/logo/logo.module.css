@@ -1,0 +1,12 @@
+.pixel {
+  width: 50px;
+  height: 50px;
+  background-color: #333;
+  position: relative;
+}
+
+.pixel::before, .pixel::after {
+  content: '';
+  position: absolute;
+  background-color: #fff;
+}
