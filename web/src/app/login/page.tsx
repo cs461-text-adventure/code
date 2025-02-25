@@ -12,6 +12,7 @@ import OAuthProviders from "@/components/auth/OAuthProviders";
 import Splitter from "@/components/auth/splitter";
 import AuthFooter from "@/components/auth/AuthFooter";
 import SignupPill from "@/components/auth/SignupPill";
+import Navbar from "@/components/NavBar";
 
 export default function Login() {
   const [errorMessage, setErrorMessage] = useState<ReactElement>();
@@ -52,6 +53,8 @@ export default function Login() {
   }
 
   return (
+    <>
+    <Navbar/>
     <AuthMain>
       <Card>
         <Title>Sign in to {process.env.NEXT_PUBLIC_APP_NAME}</Title>
@@ -104,5 +107,6 @@ export default function Login() {
 
       <AuthFooter />
     </AuthMain>
+    </>
   );
 }

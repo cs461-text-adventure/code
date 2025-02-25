@@ -14,6 +14,7 @@ import { useEffect, useState } from 'react';
 import ShareModal from '../components/ShareModal';
 import TestGameModal from '../components/TestGameModal';
 import Link from 'next/link';
+import Navbar from '@/components/NavBar';
 
 /**
  * Represents the structure of game data
@@ -157,6 +158,8 @@ export default function Dashboard() {
   }
 
   return (
+    <>
+    <Navbar/>
     <div className="min-h-screen bg-gray-50 py-8 px-4">
       <div className="max-w-7xl mx-auto">
         <div className="flex justify-between items-center mb-8">
@@ -304,5 +307,6 @@ export default function Dashboard() {
         />
       )}
     </div>
+    </>
   );
 }
