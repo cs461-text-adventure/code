@@ -4,7 +4,6 @@ import { useEffect, useState } from 'react';
 import ShareModal from '../components/ShareModal';
 import TestGameModal from '../components/TestGameModal';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
 
 interface GameData {
   difficulty: string;
@@ -39,7 +38,6 @@ const VisibilityToggle: React.FC<VisibilityToggleProps> = ({ isPublic, onToggle,
 );
 
 export default function Dashboard() {
-  const router = useRouter();
   const [games, setGames] = useState<Game[]>([]);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(true);
