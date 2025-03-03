@@ -70,7 +70,7 @@ router.get("/:id", async (req, res) => {
 });
 
 // UPDATE
-router.patch("/:id", authenticate, async (req, res) => {
+router.patch("/:id", authenticate, async (req, res): Promise<void> => {
   try {
     const id = req.params.id;
     const userId = req.session!.user.id;
@@ -82,7 +82,8 @@ router.patch("/:id", authenticate, async (req, res) => {
       .where(and(eq(games.id, id), eq(games.userId, userId)));
 
     if (!existingGame) {
-      return res.status(404).json({ error: "Game not found" });
+      res.status(404).json({ error: "Game not found" });
+      return;
     }
 
     const { name, data, isPublic } = req.body;
@@ -106,7 +107,7 @@ router.patch("/:id", authenticate, async (req, res) => {
 });
 
 // DELETE
-router.delete("/:id", authenticate, async (req, res) => {
+router.delete("/:id", authenticate, async (req, res): Promise<void> => {
   try {
     const id = req.params.id;
     const userId = req.session!.user.id;
@@ -118,7 +119,8 @@ router.delete("/:id", authenticate, async (req, res) => {
       .where(and(eq(games.id, id), eq(games.userId, userId)));
 
     if (!existingGame) {
-      return res.status(404).json({ error: "Game not found" });
+      res.status(404).json({ error: "Game not found" });
+      return;
     }
 
     await db.delete(games).where(eq(games.id, id));
