@@ -4,18 +4,35 @@ import { useState, useEffect } from "react";
 import GamePlayer from "@/components/GamePlayer";
 import { notFound } from "next/navigation";
 
+export interface Item {
+  id: string;
+  name: string;
+  description: string;
+}
+
 interface GameData {
+  rooms: [
+    {
+      id: string;
+      description: string;
+      inventory: Item[];
+      connections: [string, string];
+    },
+  ];
+}
+ // TODO: Move typing into seperate file
+interface Game {
   id: string;
   userId: string;
   name: string;
-  data: JSON;
+  data: GameData;
   isPublic: boolean;
   author: string;
 }
 
 export default function Games({ params }: { params: Promise<{ id: string }> }) {
   const [inviteData, setInviteData] = useState(null);
-  const [gameData, setGameData] = useState<GameData | null>(null);
+  const [gameData, setGameData] = useState<Game | null>(null);
   const [isPlaying, setIsPlaying] = useState(false);
   const [loading, setLoading] = useState(true);
 
@@ -92,7 +109,7 @@ export default function Games({ params }: { params: Promise<{ id: string }> }) {
           </button>
         </div>
       ) : (
-        <GamePlayer gameData={gameData!.data} />
+        <GamePlayer gameData={gameData.data} />
       )}
     </main>
   );

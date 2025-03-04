@@ -9,11 +9,12 @@ export default async function authMiddleware(request: NextRequest) {
       cookie: request.headers.get("cookie") || "",
     },
   });
-  const data = await response.json();
+  let data = null;
+  const responseText = await response.text();
 
   // If the user is not authenticated and not on login or signup page
   if (
-    !data &&
+    !responseText &&
     request.nextUrl.pathname != "/login" &&
     request.nextUrl.pathname != "/signup"
   ) {
@@ -23,6 +24,10 @@ export default async function authMiddleware(request: NextRequest) {
     loginUrl.searchParams.set("callbackURL", callbackURL);
     // Redirect to the login page
     return NextResponse.redirect(loginUrl);
+  }
+
+  if(responseText) {
+    data = JSON.parse(responseText)
   }
 
   // If the user is authenticated and on the login or signup page

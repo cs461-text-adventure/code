@@ -76,10 +76,7 @@ export class Player {
   }
 
   public move(direction: string): void {
-    console.log(this._currentRoom);
-
     const newRoom = this._currentRoom.getConnection(direction);
-
     if (newRoom) {
       this._currentRoom = newRoom;
     }

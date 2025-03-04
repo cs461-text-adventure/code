@@ -13,7 +13,7 @@ router.post("/", authenticate, async (req: Request, res: Response) => {
 
   const { gameId, expiration } = req.body;
 
-  // Validate the input
+  // TODO: Validate the input
   if (!gameId || !expiration) {
     res.status(400).json({ message: "Game and expiry are required" }); // TODO: Change error message
     return;
