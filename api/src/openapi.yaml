@@ -327,6 +327,11 @@ components:
           type: object
           description: The game data.
           required: true
+        isPublic:
+          type: bool
+          example: false
+          description: Whether the game is publicly accessible.
+          required: true
   security:
     - cookieAuth: []
 # /games

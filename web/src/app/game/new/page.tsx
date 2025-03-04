@@ -77,7 +77,7 @@ export default function NewGame() {
       }
 
       // On success, clear form and show success message
-      const newGame = await response.json();
+      // const newGame = await response.json();
       setName("");
       setData("");
       setError("Game created successfully!");

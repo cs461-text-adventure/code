@@ -43,7 +43,7 @@ router.post("/", authenticate, async (req: Request, res: Response) => {
   )[0].id;
 
   // Return the invite
-  res.status(201).json(`${process.env.ORIGIN}/play/${inviteId}`);
+  res.status(201).json(`${process.env.ORIGIN}/invite/${inviteId}`);
 });
 
 router.get("/:id", async (req, res) => {

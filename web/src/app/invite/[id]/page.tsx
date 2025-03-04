@@ -14,6 +14,7 @@ interface GameData {
 }
 
 export default function Games({ params }: { params: Promise<{ id: string }> }) {
+  const [inviteData, setInviteData] = useState(null);
   const [gameData, setGameData] = useState<GameData | null>(null);
   const [isPlaying, setIsPlaying] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -23,8 +24,20 @@ export default function Games({ params }: { params: Promise<{ id: string }> }) {
       const id = (await params).id;
 
       try {
+        const inviteResponse = await fetch(
+          `${process.env.NEXT_PUBLIC_API_URL}/invite/${id}`,
+          { method: "GET" },
+        );
+
+        if (!inviteResponse.ok) {
+          throw new Error("Invite data not found"); // TODO: Error message
+        }
+
+        const invite = await inviteResponse.json();
+        setInviteData(invite);
+
         const gameResponse = await fetch(
-          `${process.env.NEXT_PUBLIC_API_URL}/games/${id}`,
+          `${process.env.NEXT_PUBLIC_API_URL}/games/${invite.gameId}`,
           { method: "GET" },
         );
 
@@ -46,7 +59,7 @@ export default function Games({ params }: { params: Promise<{ id: string }> }) {
   }, [params]);
 
   // Return error if data isn't available after loading
-  if (!loading && !gameData) {
+  if (!loading && (!gameData || !inviteData)) {
     return (
       <main className="p-4">
         <p>Game not found...</p>

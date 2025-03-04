@@ -2,7 +2,7 @@ import "dotenv/config";
 import express from "express";
 import { eq } from "drizzle-orm";
 import { db } from "@/db/index";
-import { games } from "@/db/schema";
+import { games, user } from "@/db/schema";
 import { authenticate } from "@/lib/middleware";
 
 const router = express.Router();
@@ -24,8 +24,14 @@ router.post("/", authenticate, async (req, res) => {
 router.get("/", async (req, res) => {
   // TODO: ADD PAGINATION
   const gamesList = await db
-    .select()
+    .select({
+      id: games.id,
+      name: games.name,
+      isPublic: games.isPublic,
+      author: user.name,
+    })
     .from(games)
+    .innerJoin(user, eq(games.userId, user.id))
     .where(eq(games.isPublic, true));
   res.json(gamesList);
 });
@@ -45,7 +51,18 @@ router.get("/me", authenticate, async (req, res) => {
 router.get("/:id", async (req, res) => {
   // TODO: ADD INPUT VALIDATION
   const gameId = req.params.id;
-  const game = await db.select().from(games).where(eq(games.id, gameId));
+
+  const game = await db
+    .select({
+      id: games.id,
+      name: games.name,
+      isPublic: games.isPublic,
+      data: games.data,
+      author: user.name,
+    })
+    .from(games)
+    .innerJoin(user, eq(games.userId, user.id)) // Join with user table
+    .where(eq(games.id, gameId));
 
   if (!game.length) {
     res.status(404).json({ error: "Game not found" }); // TODO: EDIT ERROR MESSAGE

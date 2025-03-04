@@ -1,8 +1,8 @@
-'use client';
+"use client";
 
 /**
  * ShareModal Component
- * 
+ *
  * A reusable modal component for sharing game links. Features include:
  * - Copy to clipboard functionality
  * - Keyboard support (Escape to close)
@@ -10,7 +10,7 @@
  * - Visual feedback for actions
  */
 
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef } from "react";
 
 /**
  * Props for the ShareModal component
@@ -30,25 +30,33 @@ interface ShareModalProps {
  * A modal component for sharing game links
  * Provides a user interface for copying and sharing game URLs
  */
-export default function ShareModal({ isOpen, onClose, gameId, gameName }: ShareModalProps) {
+export default function ShareModal({
+  isOpen,
+  onClose,
+  gameId,
+  gameName,
+}: ShareModalProps) {
   const modalRef = useRef<HTMLDivElement>(null);
-  const gameUrl = typeof window !== 'undefined' ? `${window.location.origin}/play/${gameId}` : '';
+  const gameUrl =
+    typeof window !== "undefined"
+      ? `${window.location.origin}/play/${gameId}`
+      : "";
 
   useEffect(() => {
     const handleEscape = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') {
+      if (event.key === "Escape") {
         onClose();
       }
     };
 
     if (isOpen) {
-      document.addEventListener('keydown', handleEscape);
-      document.body.style.overflow = 'hidden';
+      document.addEventListener("keydown", handleEscape);
+      document.body.style.overflow = "hidden";
     }
 
     return () => {
-      document.removeEventListener('keydown', handleEscape);
-      document.body.style.overflow = 'unset';
+      document.removeEventListener("keydown", handleEscape);
+      document.body.style.overflow = "unset";
     };
   }, [isOpen, onClose]);
 
@@ -62,13 +70,14 @@ export default function ShareModal({ isOpen, onClose, gameId, gameName }: ShareM
     try {
       await navigator.clipboard.writeText(gameUrl);
       // Show success message
-      const el = document.createElement('div');
-      el.className = 'fixed bottom-4 right-4 bg-green-100 text-green-700 px-4 py-2 rounded-md shadow-lg z-50';
-      el.textContent = 'Game link copied to clipboard!';
+      const el = document.createElement("div");
+      el.className =
+        "fixed bottom-4 right-4 bg-green-100 text-green-700 px-4 py-2 rounded-md shadow-lg z-50";
+      el.textContent = "Game link copied to clipboard!";
       document.body.appendChild(el);
       setTimeout(() => el.remove(), 2000);
     } catch (err) {
-      console.error('Failed to copy:', err);
+      console.error("Failed to copy:", err);
     }
   };
 
@@ -83,13 +92,26 @@ export default function ShareModal({ isOpen, onClose, gameId, gameName }: ShareM
           onClick={onClose}
           className="absolute top-4 right-4 text-gray-400 hover:text-gray-500"
         >
-          <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            className="h-6 w-6"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M6 18L18 6M6 6l12 12"
+            />
           </svg>
         </button>
 
-        <h2 className="text-xl font-semibold mb-4">Share &quot;{gameName}&quot;</h2>
-        
+        <h2 className="text-xl font-semibold mb-4">
+          Share &quot;{gameName}&quot;
+        </h2>
+
         <div className="mb-6">
           <label className="block text-sm font-medium text-gray-700 mb-2">
             Game Link
@@ -105,7 +127,12 @@ export default function ShareModal({ isOpen, onClose, gameId, gameName }: ShareM
               onClick={handleCopy}
               className="inline-flex items-center px-4 py-2 border border-l-0 border-gray-300 rounded-r-md bg-gray-50 text-sm font-medium text-gray-700 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
             >
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                className="h-5 w-5 mr-2"
+                viewBox="0 0 20 20"
+                fill="currentColor"
+              >
                 <path d="M8 3a1 1 0 011-1h2a1 1 0 110 2H9a1 1 0 01-1-1z" />
                 <path d="M6 3a2 2 0 00-2 2v11a2 2 0 002 2h8a2 2 0 002-2V5a2 2 0 00-2-2 3 3 0 01-3 3H9a3 3 0 01-3-3z" />
               </svg>
