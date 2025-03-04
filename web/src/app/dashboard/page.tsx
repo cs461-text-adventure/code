@@ -1,69 +1,39 @@
 'use client';
 
-/**
- * Dashboard Component
- * 
- * Main interface for managing games. Features include:
- * - Game listing with visibility controls
- * - Sharing functionality
- * - Game deletion
- * - Create new game option
- */
-
 import { useEffect, useState } from 'react';
 import ShareModal from '../components/ShareModal';
 import TestGameModal from '../components/TestGameModal';
 import Link from 'next/link';
 
-/**
- * Represents the structure of game data
- */
 interface GameData {
   difficulty: string;
   settings: Record<string, unknown>;
 }
 
-/**
- * Represents a complete game entity
- * @property id - Unique identifier for the game
- * @property name - Display name of the game
- * @property data - Game configuration and settings
- * @property visibility - Current visibility status of the game
- */
 interface Game {
   id: string;
   name: string;
   data: GameData;
-  visibility: 'public' | 'private';
+  isPublic: boolean;
 }
 
-/**
- * Props for the VisibilityToggle component
- * @property visibility - Current visibility state
- * @property onToggle - Callback function when visibility is toggled
- * @property className - Optional CSS classes
- */
 interface VisibilityToggleProps {
-  visibility: 'public' | 'private';
+  isPublic: boolean;
   onToggle: () => void;
   className?: string;
 }
 
-/**
- * Button component for toggling game visibility
- * Provides visual feedback of current visibility state
- */
-const VisibilityToggle: React.FC<VisibilityToggleProps> = ({ visibility, onToggle, className = '' }) => (
+const VisibilityToggle: React.FC<VisibilityToggleProps> = ({ isPublic, onToggle, className = '' }) => (
   <button
     onClick={onToggle}
     className={`px-2 py-1 rounded-md text-sm font-medium ${
-      visibility === 'public'
+      isPublic
         ? 'bg-green-100 text-green-800 hover:bg-green-200'
         : 'bg-gray-100 text-gray-800 hover:bg-gray-200'
     } ${className}`}
-    title={`Game is ${visibility}. Click to toggle visibility.`}
+    title={`Game is ${isPublic ? 'public' : 'private'}. Click to toggle visibility.`}
   >
-    {visibility === 'public' ? 'Public' : 'Private'}
+    {isPublic ? 'Public' : 'Private'}
   </button>
 );
 
@@ -76,57 +46,27 @@ export default function Dashboard() {
   const [testModalOpen, setTestModalOpen] = useState(false);
 
   useEffect(() => {
-    // Mock games data for development demo
-    const mockGames: Game[] = [
-      {
-        id: '1',
-        name: 'Adventure Quest',
-        visibility: 'private',
-        data: {
-          difficulty: 'medium',
-          settings: {
-            maxPlayers: 4,
-            timeLimit: 3600,
-            checkpoints: true
-          }
+    const fetchGames = async () => {
+      try {
+        const response = await fetch('/api/games/me', {
+          credentials: 'include',
+        });
+        if (!response.ok) {
+          throw new Error('Failed to fetch games');
         }
-      },
-      {
-        id: '2',
-        name: 'Space Explorer',
-        visibility: 'public',
-        data: {
-          difficulty: 'hard',
-          settings: {
-            maxPlayers: 2,
-            timeLimit: 7200,
-            specialItems: ['jetpack', 'laser']
-          }
-        }
-      },
-      {
-        id: '3',
-        name: 'Puzzle Master',
-        visibility: 'private',
-        data: {
-          difficulty: 'easy',
-          settings: {
-            maxPlayers: 1,
-            timeLimit: 1800,
-            hints: true
-          }
-        }
+        const data = await response.json();
+        setGames(data);
+      } catch (error) {
+        console.error('Failed to fetch games:', error);
+        setError('Failed to load games');
+      } finally {
+        setLoading(false);
       }
-    ];
-    setGames(mockGames);
-    setLoading(false);
+    };
+
+    fetchGames();
   }, []);
 
-  /**
-   * Handles the deletion of a game
-   * Shows confirmation dialog and provides error feedback
-   * @param gameId - ID of the game to delete
-   */
   const handleDelete = async (gameId: string) => {
     if (!confirm('Are you sure you want to delete this game?')) return;
 
@@ -138,11 +78,35 @@ export default function Dashboard() {
       if (!response.ok) {
         throw new Error('Failed to delete game');
       }
-      // Remove game from state
       setGames(games.filter(game => game.id !== gameId));
     } catch (error) {
       console.error('Failed to delete game:', error);
       setError('Failed to delete game');
+    }
+  };
+
+  const handleVisibilityToggle = async (game: Game) => {
+    try {
+      const response = await fetch(`/api/games/${game.id}`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include',
+        body: JSON.stringify({
+          isPublic: !game.isPublic,
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to update game visibility');
+      }
+
+      const updatedGame = await response.json();
+      setGames(games.map(g => g.id === game.id ? updatedGame : g));
+    } catch (error) {
+      console.error('Failed to update visibility:', error);
+      setError('Failed to update game visibility');
     }
   };
 
@@ -198,25 +162,8 @@ export default function Dashboard() {
                   </h2>
                   <div className="flex space-x-2">
                     <VisibilityToggle
-                      visibility={game.visibility}
-                      onToggle={async () => {
-                        try {
-                          const newVisibility = game.visibility === 'public' ? 'private' : 'public';
-                          // await fetch(`/api/games/${game.id}/visibility`, {
-                          //   method: 'PATCH',
-                          //   body: JSON.stringify({ visibility: newVisibility }),
-                          // });
-                          
-                          setGames(games.map(g => 
-                            g.id === game.id 
-                              ? { ...g, visibility: newVisibility }
-                              : g
-                          ));
-                        } catch (error) {
-                          console.error('Failed to update visibility:', error);
-                          setError('Failed to update game visibility');
-                        }
-                      }}
+                      isPublic={game.isPublic}
+                      onToggle={() => handleVisibilityToggle(game)}
                     />
                     <div className="flex space-x-2">
                       <Link

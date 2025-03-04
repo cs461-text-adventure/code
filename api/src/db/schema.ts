@@ -15,6 +15,7 @@ export const games = pgTable("games", {
     .references(() => user.id),
   name: text().notNull(),
   data: json().notNull(),
+  isPublic: boolean().default(false).notNull(),
 });
 
 export const invites = pgTable("invites", {
