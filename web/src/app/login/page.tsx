@@ -22,7 +22,7 @@ export default function Login() {
   const [errorMessage, setErrorMessage] = useState<ReactElement>();
 
   async function verifyEmail(email: string) {
-    const response = await fetch("/api/auth//send-verification-email", {
+    const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/auth/send-verification-email`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ email }),
@@ -42,10 +42,11 @@ export default function Login() {
     const email = formData.get("email") as string;
     const password = formData.get("password") as string;
 
-    const response = await fetch("/api/auth/sign-in/email", {
+    const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/auth/sign-in/email`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ email, password }),
+      credentials: "include"
     });
 
     if (response.ok) {

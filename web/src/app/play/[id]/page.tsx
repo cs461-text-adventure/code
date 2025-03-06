@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import GamePlayer from "@/components/GamePlayer";
 import { notFound } from "next/navigation";
+import Navbar from "@/components/NavBar";
 
 export interface Item {
   id: string;
@@ -82,6 +83,8 @@ export default function Games({ params }: { params: Promise<{ id: string }> }) {
   return (
     <main>
       {!isPlaying ? (
+        <>
+        <Navbar />
         <div className="mx-8 pt-4">
           <div className="mb-2">
             <p className="font-bold">{gameData.name}</p>
@@ -95,6 +98,7 @@ export default function Games({ params }: { params: Promise<{ id: string }> }) {
             Play
           </button>
         </div>
+        </>
       ) : (
         <GamePlayer gameData={gameData.data} />
       )}

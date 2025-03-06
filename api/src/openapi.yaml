@@ -4,7 +4,7 @@ info:
   description: |-
     API for Text Adventure website.
 servers:
-  - url: http://texterra.xyz/api
+  - url: https://api.texterra.xyz
 tags:
   - name: invite
     description: Operations related to game invites

@@ -9,37 +9,27 @@ export default async function authMiddleware(request: NextRequest) {
       cookie: request.headers.get("cookie") || "",
     },
   });
-  let data = null;
+  // TODO: IF RESPONSE NOT OK
+
+  // Check if user is authenticated (response was returned using STRING 'null')
   const responseText = await response.text();
-
+  const authenticated = responseText.length > 0 && responseText != 'null';
+  console.log(`responseText: ${responseText}`)
+  console.log(`authenticated: ${authenticated}`)
+  
   // If the user is not authenticated and not on login or signup page
-  if (
-    !responseText &&
-    request.nextUrl.pathname != "/login" &&
-    request.nextUrl.pathname != "/signup"
-  ) {
+  if (!authenticated && !["/login", "/signup"].includes(request.nextUrl.pathname)) {
     const loginUrl = new URL("/login", request.url);
-    // Set callbackURL to the requested protected path
     const callbackURL = request.nextUrl.pathname;
-    loginUrl.searchParams.set("callbackURL", callbackURL);
-    // Redirect to the login page
-    return NextResponse.redirect(loginUrl);
+    loginUrl.searchParams.set("callbackURL", callbackURL); // Set callback URL
+    return NextResponse.redirect(loginUrl); // Redirect to login
   }
 
-  if(responseText) {
-    data = JSON.parse(responseText)
-  }
-
-  // If the user is authenticated and on the login or signup page
-  if (
-    data != null &&
-    (request.nextUrl.pathname === "/login" ||
-      request.nextUrl.pathname === "/signup")
-  ) {
-    // Redirect to the original request URL or a default
+  // If the user is authenticated and on the login or signup page, redirect to dashboard or callback URL
+  if (authenticated && ["/login", "/signup"].includes(request.nextUrl.pathname)) {
     const redirectUrl =
-      request.nextUrl.searchParams.get("callbackURL") ?? "/dashboard";
-    return NextResponse.redirect(new URL(redirectUrl, request.url));
+      request.nextUrl.searchParams.get("callbackURL") ?? "/dashboard"; // Default to /dashboard if no callback
+    return NextResponse.redirect(new URL(redirectUrl, request.url)); // Redirect to dashboard or callback URL
   }
 
   return NextResponse.next();
