@@ -1,6 +1,6 @@
 import "dotenv/config";
 import express from "express";
-import { eq, and } from "drizzle-orm";
+import { eq } from "drizzle-orm";
 import { db } from "@/db/index";
 import { games } from "@/db/schema";
 import { authenticate } from "@/lib/middleware";
@@ -21,43 +21,14 @@ router.post("/", authenticate, async (req, res) => {
   res.status(201).json(newGame);
 });
 
-// READ ALL
+// READ
 router.get("/", async (req, res) => {
   // TODO: ADD PAGINATION
   const gamesList = await db.select().from(games);
   res.send(gamesList);
 });
 
-// READ USER'S GAMES
-router.get("/me", authenticate, async (req, res) => {
-  try {
-    const userId = req.session!.user.id;
-    const userGames = await db
-      .select()
-      .from(games)
-      .where(eq(games.userId, userId));
-    res.json(userGames);
-  } catch (error) {
-    console.error("Error fetching user games:", error);
-    res.status(500).json({ error: "Internal server error" });
-  }
-});
-
-// READ PUBLIC GAMES
-router.get("/public", async (req, res) => {
-  try {
-    const publicGames = await db
-      .select()
-      .from(games)
-      .where(eq(games.isPublic, true));
-    res.json(publicGames);
-  } catch (error) {
-    console.error("Error fetching public games:", error);
-    res.status(500).json({ error: "Internal server error" });
-  }
-});
-
-// READ ONE
+// READ
 router.get("/:id", async (req, res) => {
   // TODO: ADD INPUT VALIDATION
   const id = req.params.id;
@@ -70,65 +41,29 @@ router.get("/:id", async (req, res) => {
 });
 
 // UPDATE
-router.patch("/:id", authenticate, async (req, res): Promise<void> => {
-  try {
-    const id = req.params.id;
-    const userId = req.session!.user.id;
-    
-    // Verify ownership
-    const [existingGame] = await db
-      .select()
-      .from(games)
-      .where(and(eq(games.id, id), eq(games.userId, userId)));
-
-    if (!existingGame) {
-      res.status(404).json({ error: "Game not found" });
-      return;
-    }
-
-    const { name, data, isPublic } = req.body;
-    const updates: Partial<typeof games.$inferInsert> = {};
-    
-    if (name !== undefined) updates.name = name;
-    if (data !== undefined) updates.data = data;
-    if (isPublic !== undefined) updates.isPublic = isPublic;
-
-    const [updatedGame] = await db
-      .update(games)
-      .set(updates)
-      .where(eq(games.id, id))
-      .returning();
-
-    res.json(updatedGame);
-  } catch (error) {
-    console.error("Error updating game:", error);
-    res.status(500).json({ error: "Internal server error" });
-  }
+router.patch("/:id", async (req, res) => {
+  // TODO: ADD AUTHENTICATION
+  // TODO: ADD INPUT VALIDATION
+  const { name, data } = req.body;
+  const id = req.params.id;
+  const patchedGame = await db
+    .update(games)
+    .set({
+      name: name,
+      data: data,
+    })
+    .where(eq(games.id, id))
+    .returning();
+  res.send(patchedGame);
 });
 
 // DELETE
-router.delete("/:id", authenticate, async (req, res): Promise<void> => {
-  try {
-    const id = req.params.id;
-    const userId = req.session!.user.id;
-
-    // Verify ownership
-    const [existingGame] = await db
-      .select()
-      .from(games)
-      .where(and(eq(games.id, id), eq(games.userId, userId)));
-
-    if (!existingGame) {
-      res.status(404).json({ error: "Game not found" });
-      return;
-    }
-
-    await db.delete(games).where(eq(games.id, id));
-    res.status(204).send();
-  } catch (error) {
-    console.error("Error deleting game:", error);
-    res.status(500).json({ error: "Internal server error" });
-  }
+router.delete("/:id", async (req, res) => {
+  // TODO: ADD AUTHENTICATION
+  // TODO: ADD INPUT VALIDATION
+  const id = req.params.id;
+  await db.delete(games).where(eq(games.id, id));
+  res.status(204).send();
 });
 
 export default router;
