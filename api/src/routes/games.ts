@@ -41,29 +41,69 @@ router.get("/:id", async (req, res) => {
 });
 
 // UPDATE
-router.patch("/:id", async (req, res) => {
-  // TODO: ADD AUTHENTICATION
-  // TODO: ADD INPUT VALIDATION
-  const { name, data } = req.body;
-  const id = req.params.id;
-  const patchedGame = await db
-    .update(games)
-    .set({
-      name: name,
-      data: data,
-    })
-    .where(eq(games.id, id))
-    .returning();
-  res.send(patchedGame);
+router.patch("/:id", authenticate, async (req, res): Promise<void> => {
+  try {
+    const id = req.params.id;
+    const userId = req.session!.user.id;
+    
+    // Check if game exists
+    const [game] = await db.select().from(games).where(eq(games.id, id));
+    if (!game) {
+      res.status(404).json({ error: "Game not found" });
+      return;
+    }
+
+    // Check if user owns the game
+    if (game.userId !== userId) {
+      res.status(403).json({ error: "Forbidden: You do not have permission to modify this game" });
+      return;
+    }
+
+    const { name, data, isPublic } = req.body;
+    const updates: Partial<typeof games.$inferInsert> = {};
+    
+    if (name !== undefined) updates.name = name;
+    if (data !== undefined) updates.data = data;
+    if (isPublic !== undefined) updates.isPublic = isPublic;
+
+    const [updatedGame] = await db
+      .update(games)
+      .set(updates)
+      .where(eq(games.id, id))
+      .returning();
+
+    res.json(updatedGame);
+  } catch (error) {
+    console.error("Error updating game:", error);
+    res.status(500).json({ error: "Internal server error" });
+  }
 });
 
 // DELETE
-router.delete("/:id", async (req, res) => {
-  // TODO: ADD AUTHENTICATION
-  // TODO: ADD INPUT VALIDATION
-  const id = req.params.id;
-  await db.delete(games).where(eq(games.id, id));
-  res.status(204).send();
+router.delete("/:id", authenticate, async (req, res): Promise<void> => {
+  try {
+    const id = req.params.id;
+    const userId = req.session!.user.id;
+
+    // Check if game exists
+    const [game] = await db.select().from(games).where(eq(games.id, id));
+    if (!game) {
+      res.status(404).json({ error: "Game not found" });
+      return;
+    }
+
+    // Check if user owns the game
+    if (game.userId !== userId) {
+      res.status(403).json({ error: "Forbidden: You do not have permission to delete this game" });
+      return;
+    }
+
+    await db.delete(games).where(eq(games.id, id));
+    res.status(204).send();
+  } catch (error) {
+    console.error("Error deleting game:", error);
+    res.status(500).json({ error: "Internal server error" });
+  }
 });
 
 export default router;

@@ -1,69 +1,42 @@
 import { NextRequest, NextResponse } from "next/server";
 
 export default async function authMiddleware(request: NextRequest) {
-  // Check for login attempt with test credentials
-  let data = null;
-  
-  if (request.nextUrl.pathname === '/login' && request.method === 'POST') {
-    try {
-      const body = await request.json();
-      if (body.email === 'test@example.com' && body.password === 'password123') {
-        data = {
-          user: {
-            id: "dev-user-123",
-            name: "Test User",
-            email: "test@example.com",
-            emailVerified: true,
-          }
-        };
-      }
-    } catch {
-      // Ignore JSON parse errors
-    }
-  }
+  // Validate the access token
+  const apiUrl = process.env.NEXT_PUBLIC_API_URL + "/auth/get-session";
+  const response = await fetch(apiUrl, {
+    method: "GET",
+    headers: {
+      cookie: request.headers.get("cookie") || "",
+    },
+  });
+  // TODO: IF RESPONSE NOT OK
 
-  // Check for mock session cookie
-  const mockSession = request.cookies.get('mock-session');
-  if (mockSession?.value === 'test-user') {
-    data = {
-      user: {
-        id: "dev-user-123",
-        name: "Test User",
-        email: "test@example.com",
-        emailVerified: true,
-      }
-    };
-  }
-
-  const response = NextResponse.next();
+  // Check if user is authenticated (response was returned using STRING 'null')
+  const responseText = await response.text();
+  const authenticated = responseText.length > 0 && responseText != "null";
 
   // If the user is not authenticated and not on login or signup page
   if (
-    !data &&
-    request.nextUrl.pathname != "/login" &&
-    request.nextUrl.pathname != "/signup"
+    !authenticated &&
+    !["/login", "/signup"].includes(request.nextUrl.pathname)
   ) {
     const loginUrl = new URL("/login", request.url);
-    // Set callbackURL to the requested protected path
     const callbackURL = request.nextUrl.pathname;
-    loginUrl.searchParams.set("callbackURL", callbackURL);
-    // Redirect to the login page
-    return NextResponse.redirect(loginUrl);
+    loginUrl.searchParams.set("callbackURL", callbackURL); // Set callback URL
+    return NextResponse.redirect(loginUrl); // Redirect to login
   }
 
-  // If the user is authenticated and on the login or signup page
+  // If the user is authenticated and on the login or signup page, redirect to dashboard or callback URL
   if (
-    data != null &&
-    (request.nextUrl.pathname === "/login" ||
-      request.nextUrl.pathname === "/signup")
+    authenticated &&
+    ["/login", "/signup"].includes(request.nextUrl.pathname)
   ) {
-    // Redirect to the original request URL or a default
     const redirectUrl =
-      request.nextUrl.searchParams.get("callbackURL") ?? "/dashboard";
-    return NextResponse.redirect(new URL(redirectUrl, request.url));
+      request.nextUrl.searchParams.get("callbackURL") ?? "/dashboard"; // Default to /dashboard if no callback
+    return NextResponse.redirect(new URL(redirectUrl, request.url)); // Redirect to dashboard or callback URL
   }
 
-  return response;
+  return NextResponse.next();
 }
 
 export const config = {

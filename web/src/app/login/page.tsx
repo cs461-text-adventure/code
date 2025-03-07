@@ -1,6 +1,7 @@
 "use client";
 
 import { FormEvent, useState, ReactElement } from "react";
+import { useRouter } from "next/navigation";
 import Link from "next/link";
 
 import AuthMain from "@/components/auth/AuthMain";
@@ -10,11 +11,32 @@ import Description from "@/components/auth/description";
 import AuthError from "@/components/auth/error";
 import OAuthProviders from "@/components/auth/OAuthProviders";
 import Splitter from "@/components/auth/splitter";
+import Input from "@/components/auth/input";
+import PasswordInput from "@/components/auth/password";
+import SubmitButton from "@/components/auth/button";
 import AuthFooter from "@/components/auth/AuthFooter";
 import SignupPill from "@/components/auth/SignupPill";
 
 export default function Login() {
+  const router = useRouter();
   const [errorMessage, setErrorMessage] = useState<ReactElement>();
+
+  async function verifyEmail(email: string) {
+    const response = await fetch(
+      `${process.env.NEXT_PUBLIC_API_URL}/auth/send-verification-email`,
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email }),
+      },
+    );
+    if (response.ok) {
+      router.push("/verify-email");
+    } else {
+      const error = await response.json();
+      setErrorMessage(<p>{error.message}</p>);
+    }
+  }
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -23,31 +45,25 @@ export default function Login() {
     const email = formData.get("email") as string;
     const password = formData.get("password") as string;
 
-    // For development demo
-    if (email === 'test@example.com' && password === 'password123') {
-      try {
-        // First set the mock session cookie
-        const response = await fetch('/auth/mock-login', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({ email, password }),
-          credentials: 'include',
-        });
+    const response = await fetch(
+      `${process.env.NEXT_PUBLIC_API_URL}/auth/sign-in/email`,
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, password }),
+        credentials: "include",
+      },
+    );
 
-        if (response.ok) {
-          // Then redirect to dashboard
-          window.location.href = 'http://localhost:8080/dashboard';
-        } else {
-          throw new Error('Failed to set session');
-        }
-      } catch (error) {
-        console.error('Login error:', error);
-        setErrorMessage(<p>Login failed. Please try again.</p>);
-      }
+    if (response.ok) {
+      router.push("/dashboard");
     } else {
-      setErrorMessage(<p>Invalid email or password. Use test@example.com / password123</p>);
+      const error = await response.json();
+      if (error.message === "Email not verified") {
+        verifyEmail(email);
+      } else {
+        setErrorMessage(<p>{error.message}</p>);
+      }
     }
   }
 
@@ -67,14 +83,13 @@ export default function Login() {
             Email Address
           </label>
 
-          <input
-            type="email"
+          <Input
             name="email"
+            type="email"
             required
             autoCapitalize="none"
             autoCorrect="off"
-            className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500 text-gray-900"
-          />
+          ></Input>
 
           <div className="flex justify-between">
             <label className="mb-2 text-sm" htmlFor="">
@@ -84,19 +99,9 @@ export default function Login() {
               Forgot password?
             </Link>
           </div>
-          <input
-            type="password"
-            name="password"
-            required
-            className="mt-1 mb-8 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500 text-gray-900"
-          />
+          <PasswordInput className="mb-8" />
 
-          <button
-            type="submit"
-            className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
-          >
-            Continue
-          </button>
+          <SubmitButton />
         </form>
       </Card>
 
