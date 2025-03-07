@@ -17,18 +17,22 @@ RUN \
   else echo "Lockfile not found." && exit 1; \
   fi
 
-# Copy source files
+# Run linter
+COPY eslint.config.mjs ./
+RUN npm run lint
+
+# Production image, copy all the files and run
 FROM base AS runner
 WORKDIR /app
+
+# Copy the application source and node_modules from the deps stage
+COPY --from=deps /app/node_modules ./node_modules
+COPY . .
 
 ENV NODE_ENV=production
 
 RUN addgroup --system --gid 1001 nodejs
 RUN adduser --system --uid 1001 expressjs
-
-# Copy the application source and node_modules from the deps stage
-COPY --from=deps /app/node_modules ./node_modules
-COPY . .
 
 USER expressjs
 
