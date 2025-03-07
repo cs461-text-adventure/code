@@ -19,7 +19,7 @@ interface GameData {
     },
   ];
 }
- // TODO: Move typing into seperate file
+// TODO: Move typing into seperate file
 interface Game {
   id: string;
   userId: string;
@@ -36,7 +36,9 @@ export default function Browse() {
   useEffect(() => {
     async function fetchGames() {
       try {
-        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/games`);
+        const response = await fetch(
+          `${process.env.NEXT_PUBLIC_API_URL}/games`,
+        );
         if (!response.ok) {
           throw new Error(`Error: ${response.status} ${response.statusText}`);
         }

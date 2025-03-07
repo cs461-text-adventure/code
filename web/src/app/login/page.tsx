@@ -22,11 +22,14 @@ export default function Login() {
   const [errorMessage, setErrorMessage] = useState<ReactElement>();
 
   async function verifyEmail(email: string) {
-    const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/auth/send-verification-email`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ email }),
-    });
+    const response = await fetch(
+      `${process.env.NEXT_PUBLIC_API_URL}/auth/send-verification-email`,
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email }),
+      },
+    );
     if (response.ok) {
       router.push("/verify-email");
     } else {
@@ -42,12 +45,15 @@ export default function Login() {
     const email = formData.get("email") as string;
     const password = formData.get("password") as string;
 
-    const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/auth/sign-in/email`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ email, password }),
-      credentials: "include"
-    });
+    const response = await fetch(
+      `${process.env.NEXT_PUBLIC_API_URL}/auth/sign-in/email`,
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, password }),
+        credentials: "include",
+      },
+    );
 
     if (response.ok) {
       router.push("/dashboard");

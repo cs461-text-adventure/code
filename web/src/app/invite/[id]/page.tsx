@@ -20,7 +20,7 @@ interface GameData {
     },
   ];
 }
- // TODO: Move typing into seperate file
+// TODO: Move typing into seperate file
 interface Game {
   id: string;
   userId: string;

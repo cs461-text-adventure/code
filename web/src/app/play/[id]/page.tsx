@@ -21,7 +21,7 @@ interface GameData {
     },
   ];
 }
- // TODO: Move typing into seperate file
+// TODO: Move typing into seperate file
 interface Game {
   id: string;
   userId: string;
@@ -84,20 +84,20 @@ export default function Games({ params }: { params: Promise<{ id: string }> }) {
     <main>
       {!isPlaying ? (
         <>
-        <Navbar />
-        <div className="mx-8 pt-4">
-          <div className="mb-2">
-            <p className="font-bold">{gameData.name}</p>
-            <p>Author: {gameData.author}</p>
-            <br />
+          <Navbar />
+          <div className="mx-8 pt-4">
+            <div className="mb-2">
+              <p className="font-bold">{gameData.name}</p>
+              <p>Author: {gameData.author}</p>
+              <br />
+            </div>
+            <button
+              className="text-rg text-white w-96 bg-blue-600 hover:bg-blue-700 rounded-lg p-2"
+              onClick={play}
+            >
+              Play
+            </button>
           </div>
-          <button
-            className="text-rg text-white w-96 bg-blue-600 hover:bg-blue-700 rounded-lg p-2"
-            onClick={play}
-          >
-            Play
-          </button>
-        </div>
         </>
       ) : (
         <GamePlayer gameData={gameData.data} />

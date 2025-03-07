@@ -20,14 +20,13 @@ export default function OAuthProviders() {
   ) {
     // TODO: REPLACE WITH FETCH API INSTEAD
 
-    // FETCH API.TEXTERRA.XYZ 
+    // FETCH API.TEXTERRA.XYZ
     /*
     body {
       provider: "discord",
       callbackURL: "https://texterra.xyz/dashboard"
     }
     */
-
 
     await authClient.signIn.social({
       provider: provider,
