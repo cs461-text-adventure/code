@@ -17,22 +17,33 @@ RUN \
   else echo "Lockfile not found." && exit 1; \
   fi
 
-# Run linter
-COPY eslint.config.mjs ./
-RUN npm run lint
+# Rebuild the source code only when needed
+FROM base AS builder
+WORKDIR /app
+COPY --from=deps /app/node_modules ./node_modules
+COPY . .
+
+# Run build
+RUN \
+  if [ -f yarn.lock ]; then yarn run build; \
+  elif [ -f package-lock.json ]; then npm run build; \
+  elif [ -f pnpm-lock.yaml ]; then corepack enable pnpm && pnpm run build; \
+  else echo "Lockfile not found." && exit 1; \
+  fi
 
 # Production image, copy all the files and run
 FROM base AS runner
 WORKDIR /app
 
-# Copy the application source and node_modules from the deps stage
-COPY --from=deps /app/node_modules ./node_modules
-COPY . .
-
 ENV NODE_ENV=production
 
 RUN addgroup --system --gid 1001 nodejs
 RUN adduser --system --uid 1001 expressjs
+
+# Copy the application source and node_modules from the deps stage
+COPY --from=deps /app/node_modules ./node_modules
+COPY --from=builder /app/dist ./dist
+COPY --from=builder /app/package.json ./package.json
 
 USER expressjs
 
