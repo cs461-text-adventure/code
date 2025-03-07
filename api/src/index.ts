@@ -12,14 +12,14 @@ import inviteRoutes from "./routes/invite";
 
 const app = express();
 const port = 8000;
-const isProduction = process.env.NODE_ENV === 'production';
+const isProduction = process.env.NODE_ENV === "production";
 
 app.use(
   cors({
     origin: isProduction ? `https://${process.env.DOMAIN}` : `http://localhost`,
     methods: ["GET", "POST", "PUT", "DELETE"],
     credentials: true,
-  })
+  }),
 );
 
 app.get("/api/openapi", (req, res) => {

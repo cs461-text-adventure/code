@@ -11,8 +11,8 @@ import * as schema from "@/db/schema";
 // import { reactResetPasswordEmail } from "./email/rest-password";
 import { sendEmail } from "@/email/index";
 
-const isProduction = process.env.NODE_ENV === 'production';
-const DOMAIN = process.env.DOMAIN || 'localhost';
+const isProduction = process.env.NODE_ENV === "production";
+const DOMAIN = process.env.DOMAIN || "localhost";
 const origin = isProduction ? `https://${DOMAIN}` : `http://localhost`;
 
 export const auth = betterAuth({
@@ -86,18 +86,18 @@ export const auth = betterAuth({
     // }),
   ],
   advanced: {
-      crossSubDomainCookies: {
-          enabled: isProduction,
-          domain: `.${DOMAIN}`, // Domain with a leading period
-      },
-      defaultCookieAttributes: {
-          secure: isProduction, // Only secure in production
-          httpOnly: true,
-          sameSite: isProduction ? "none" : "lax",  // Allows CORS-based cookie sharing across subdomains
-          partitioned: isProduction, // Only partitioned when secure
-      },
+    crossSubDomainCookies: {
+      enabled: isProduction,
+      domain: `.${DOMAIN}`, // Domain with a leading period
+    },
+    defaultCookieAttributes: {
+      secure: isProduction, // Only secure in production
+      httpOnly: true,
+      sameSite: isProduction ? "none" : "lax", // Allows CORS-based cookie sharing across subdomains
+      partitioned: isProduction, // Only partitioned when secure
+    },
   },
   trustedOrigins: isProduction
-  ? [`https://${DOMAIN}`, `https://api.${DOMAIN}`]
-  : ['http://localhost', 'http://localhost:3000']
+    ? [`https://${DOMAIN}`, `https://api.${DOMAIN}`]
+    : ["http://localhost", "http://localhost:3000"],
 });
