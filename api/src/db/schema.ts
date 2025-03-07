@@ -12,9 +12,10 @@ export const games = pgTable("games", {
   id: uuid().defaultRandom().primaryKey(),
   userId: text()
     .notNull()
-    .references(() => user.id),
+    .references(() => user.id, { onDelete: "cascade" }),
   name: text().notNull(),
   data: json().notNull(),
+  isPublic: boolean().default(false),
 });
 
 export const invites = pgTable("invites", {
@@ -24,7 +25,7 @@ export const invites = pgTable("invites", {
     .references(() => user.id),
   gameId: uuid()
     .notNull()
-    .references(() => games.id),
+    .references(() => games.id, { onDelete: "cascade" }),
   expiration: timestamp().notNull(),
 });
 

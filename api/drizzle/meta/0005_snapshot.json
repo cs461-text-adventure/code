@@ -1,6 +1,6 @@
 {
-  "id": "3453bb44-8eda-4f99-975c-c213790cafaa",
-  "prevId": "00000000-0000-0000-0000-000000000000",
+  "id": "fe4b4736-da7f-493a-91dd-86d411f994fd",
+  "prevId": "5c7f2a96-47dc-4d57-915e-a57de2b3daae",
   "version": "7",
   "dialect": "postgresql",
   "tables": {
@@ -133,6 +133,13 @@
           "type": "json",
           "primaryKey": false,
           "notNull": true
+        },
+        "isPublic": {
+          "name": "isPublic",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": false,
+          "default": false
         }
       },
       "indexes": {},
@@ -143,7 +150,7 @@
           "tableTo": "user",
           "columnsFrom": ["userId"],
           "columnsTo": ["id"],
-          "onDelete": "no action",
+          "onDelete": "cascade",
           "onUpdate": "no action"
         }
       },
@@ -200,7 +207,7 @@
           "tableTo": "games",
           "columnsFrom": ["gameId"],
           "columnsTo": ["id"],
-          "onDelete": "no action",
+          "onDelete": "cascade",
           "onUpdate": "no action"
         }
       },

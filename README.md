@@ -6,6 +6,7 @@ Ensure you have the following installed:
 
 - [Node](https://nodejs.org/en)
 - [PostgreSQL](https://www.postgresql.org/)
+- [NGINX](https://nginx.org/)
 
 ## Installation
 
@@ -27,13 +28,44 @@ npm install
 
 Modify the `.env` file located in the `/api` directory to specify your Postgres connection URL.
 
-Example `.env` file:
-
+Example:
 ```ini
-DATABASE_URL=postgres://username:password@localhost:5432/database
+DATABASE_URL='postgres://username:password@localhost:5432/database'
 ```
 
-### 3. Create Database Tables
+### 3. Configure BetterAuth Connection
+
+Generate a random value to use as your encryption seed.
+Modify the `.env` file located in the `/api` directory to specify this secret.
+
+Example:
+```ini
+BETTER_AUTH_SECRET='sR17KEeIhzRVtfOR1StK7as6w43imxnE'
+```
+
+### 4. Configure OAuth Providers
+
+Create OAuth applications for [Discord](https://discord.com/developers/docs/topics/oauth2), [Google](https://developers.google.com/identity/protocols/oauth2), and [GitHub](https://docs.github.com/en/apps/oauth-apps/building-oauth-apps/creating-an-oauth-app).
+
+Modify the `.env` file located in the `/api` directory to specify these connections.
+
+Example:
+```ini
+DISCORD_CLIENT_ID=''
+DISCORD_CLIENT_SECRET=''
+```
+
+### 5. Configure Resend API
+
+Create a Resend API key [here](https://resend.com/api-keys).
+Modify the `.env` file located in the `/api` directory to specify this key.
+
+Example:
+```ini
+RESEND_API_KEY='re_VNQodBmv_S89xwtZLAb1aerkXti43Z4qf'
+```
+
+### 6. Create Database Tables
 
 Run the following command to generate migrations:
 
@@ -47,27 +79,27 @@ Run the following command to apply migrations:
 npx drizzle-kit migrate
 ```
 
+### 7. Configure NGINX
+Update your local NGINX config file to include the routes specified in `nginx-local.conf` then reload NGINX.
+
 ## Running the application
 
-#adding 'hello world' to test environment integration
-"hello world!"
-
-## To start the API:
+### Start the API:
 
 ```bash
 cd /api
 npm run dev
 ```
 
-## To start the frontend:
+### Start the frontend:
 ```bash
 cd /web
 npm run dev
 ```
 
-# Documentation
+## Documentation
 
 ```
-/api/reference
-/api/auth/reference
+localhost/api/reference
+localhost/api/auth/reference
 ```

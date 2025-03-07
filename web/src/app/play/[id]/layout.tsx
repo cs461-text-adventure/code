@@ -1,8 +1,9 @@
+import "../../globals.css";
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: `Login • ${process.env.NEXT_PUBLIC_APP_NAME}`,
-  description: "",
+  title: "", // TODO: Game Name
+  description: "", // TODO: Game Description
 };
 
 export default function Layout({

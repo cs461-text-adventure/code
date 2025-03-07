@@ -1,6 +1,6 @@
 {
-  "id": "3453bb44-8eda-4f99-975c-c213790cafaa",
-  "prevId": "00000000-0000-0000-0000-000000000000",
+  "id": "98b52567-3f05-4a3d-add2-7e087edbf7d5",
+  "prevId": "e0edabcf-2532-4f72-903c-924f2feb82c1",
   "version": "7",
   "dialect": "postgresql",
   "tables": {
@@ -133,6 +133,12 @@
           "type": "json",
           "primaryKey": false,
           "notNull": true
+        },
+        "isPublic": {
+          "name": "isPublic",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": false
         }
       },
       "indexes": {},

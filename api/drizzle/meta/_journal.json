@@ -5,8 +5,43 @@
     {
       "idx": 0,
       "version": "7",
-      "when": 1737072588148,
-      "tag": "0000_curved_marauders",
+      "when": 1737500165273,
+      "tag": "0000_wild_yellow_claw",
+      "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1738623533831,
+      "tag": "0001_vengeful_wendell_rand",
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1738625049708,
+      "tag": "0002_sticky_red_ghost",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1738625649065,
+      "tag": "0003_lazy_nightshade",
+      "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1738626122902,
+      "tag": "0004_harsh_mandroid",
+      "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1738626180880,
+      "tag": "0005_silky_marvel_zombies",
       "breakpoints": true
     }
   ]

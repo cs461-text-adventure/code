@@ -1,7 +1,12 @@
+import Navbar from "@/components/NavBar";
+
 export default function Home() {
   return (
-    <main className="p-4">
-      <h1>Text Adventure</h1>
+    <main className="">
+      <Navbar />
+      <div className="mx-8 pt-4">
+        <p>This is the homepage</p>
+      </div>
     </main>
   );
 }

@@ -2,6 +2,7 @@
 
 # dependencies
 /node_modules
+/drizzle
 
 # misc
 .DS_Store

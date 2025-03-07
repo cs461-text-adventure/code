@@ -1,0 +1,1 @@
+ALTER TABLE "games" ALTER COLUMN "isPublic" SET DEFAULT false;

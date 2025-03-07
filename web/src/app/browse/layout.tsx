@@ -1,7 +1,9 @@
+import "../globals.css";
 import type { Metadata } from "next";
+import Navbar from "@/components/NavBar";
 
 export const metadata: Metadata = {
-  title: `Login • ${process.env.NEXT_PUBLIC_APP_NAME}`,
+  title: process.env.NEXT_PUBLIC_APP_NAME as string,
   description: "",
 };
 
@@ -10,5 +12,10 @@ export default function Layout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  return <div>{children}</div>;
+  return (
+    <div>
+      <Navbar />
+      {children}
+    </div>
+  );
 }

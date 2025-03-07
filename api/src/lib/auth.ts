@@ -10,7 +10,10 @@ import * as schema from "@/db/schema";
 // import { reactInvitationEmail } from "./email/invitation";
 // import { reactResetPasswordEmail } from "./email/rest-password";
 import { sendEmail } from "@/email/index";
-const origin = process.env.ORIGIN || "http://localhost";
+
+const isProduction = process.env.NODE_ENV === "production";
+const DOMAIN = process.env.DOMAIN || "localhost";
+const origin = isProduction ? `https://${DOMAIN}` : `http://localhost`;
 
 export const auth = betterAuth({
   database: drizzleAdapter(db, {
@@ -84,9 +87,17 @@ export const auth = betterAuth({
   ],
   advanced: {
     crossSubDomainCookies: {
-      enabled: false, // TODO
-      domain: "localhost",
+      enabled: isProduction,
+      domain: `.${DOMAIN}`, // Domain with a leading period
+    },
+    defaultCookieAttributes: {
+      secure: isProduction, // Only secure in production
+      httpOnly: true,
+      sameSite: isProduction ? "none" : "lax", // Allows CORS-based cookie sharing across subdomains
+      partitioned: isProduction, // Only partitioned when secure
     },
   },
-  trustedOrigins: [origin],
+  trustedOrigins: isProduction
+    ? [`https://${DOMAIN}`, `https://api.${DOMAIN}`]
+    : ["http://localhost", "http://localhost:3000"],
 });
