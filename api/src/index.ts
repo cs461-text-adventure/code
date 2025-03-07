@@ -2,7 +2,7 @@ import "dotenv/config";
 import path from "path";
 import cors from "cors";
 import express from "express";
-import { toNodeHandler, fromNodeHeaders } from "better-auth/node";
+import { toNodeHandler } from "better-auth/node";
 import { auth } from "@/lib/auth";
 
 import { apiReference } from "@scalar/express-api-reference";
