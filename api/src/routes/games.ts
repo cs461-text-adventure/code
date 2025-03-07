@@ -85,15 +85,13 @@ router.patch("/:id", authenticate, async (req, res) => {
 
     // Check if user owns the game
     if (game.userId !== userId) {
-      res.status(403).json({
-        error: "Forbidden: You do not have permission to modify this game",
-      });
+      res.status(403).json({ error: "Forbidden: You do not have permission to modify this game" }); // TODO: Edit error message
       return;
     }
 
     const { name, data, isPublic } = req.body;
     const updates: Partial<typeof games.$inferInsert> = {};
-
+    
     if (name !== undefined) updates.name = name;
     if (data !== undefined) updates.data = data;
     if (isPublic !== undefined) updates.isPublic = isPublic;
