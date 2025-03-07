@@ -1,6 +1,6 @@
 import "dotenv/config";
 import express from "express";
-import { eq, and } from "drizzle-orm";
+import { eq } from "drizzle-orm";
 import { db } from "@/db/index";
 import { games } from "@/db/schema";
 import { authenticate } from "@/lib/middleware";
@@ -21,43 +21,14 @@ router.post("/", authenticate, async (req, res) => {
   res.status(201).json(newGame);
 });
 
-// READ ALL
+// READ
 router.get("/", async (req, res) => {
   // TODO: ADD PAGINATION
   const gamesList = await db.select().from(games);
   res.send(gamesList);
 });
 
-// READ USER'S GAMES
-router.get("/me", authenticate, async (req, res) => {
-  try {
-    const userId = req.session!.user.id;
-    const userGames = await db
-      .select()
-      .from(games)
-      .where(eq(games.userId, userId));
-    res.json(userGames);
-  } catch (error) {
-    console.error("Error fetching user games:", error);
-    res.status(500).json({ error: "Internal server error" });
-  }
-});
-
-// READ PUBLIC GAMES
-router.get("/public", async (req, res) => {
-  try {
-    const publicGames = await db
-      .select()
-      .from(games)
-      .where(eq(games.isPublic, true));
-    res.json(publicGames);
-  } catch (error) {
-    console.error("Error fetching public games:", error);
-    res.status(500).json({ error: "Internal server error" });
-  }
-});
-
-// READ ONE
+// READ
 router.get("/:id", async (req, res) => {
   // TODO: ADD INPUT VALIDATION
   const id = req.params.id;
