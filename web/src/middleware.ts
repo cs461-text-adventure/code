@@ -1,38 +1,21 @@
 import { NextRequest, NextResponse } from "next/server";
 
 export default async function authMiddleware(request: NextRequest) {
-  // Check for login attempt with test credentials
+  // Check for session cookie
+  const sessionCookie = request.cookies.get('session');
   let data = null;
-  
-  if (request.nextUrl.pathname === '/login' && request.method === 'POST') {
+
+  if (sessionCookie?.value) {
     try {
-      const body = await request.json();
-      if (body.email === 'test@example.com' && body.password === 'password123') {
+      const session = JSON.parse(sessionCookie.value);
+      if (session?.user?.id) {
         data = {
-          user: {
-            id: "dev-user-123",
-            name: "Test User",
-            email: "test@example.com",
-            emailVerified: true,
-          }
+          user: session.user
         };
       }
-    } catch {
-      // Ignore JSON parse errors
+    } catch (e) {
+      console.error('Error parsing session cookie:', e);
     }
-  }
-
-  // Check for mock session cookie
-  const mockSession = request.cookies.get('mock-session');
-  if (mockSession?.value === 'test-user') {
-    data = {
-      user: {
-        id: "dev-user-123",
-        name: "Test User",
-        email: "test@example.com",
-        emailVerified: true,
-      }
-    };
   }
 
   const response = NextResponse.next();

@@ -2,6 +2,7 @@
 
 import { FormEvent, useState, ReactElement } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 
 import AuthMain from "@/components/auth/AuthMain";
 import Card from "@/components/auth/card";
@@ -15,6 +16,7 @@ import SignupPill from "@/components/auth/SignupPill";
 
 export default function Login() {
   const [errorMessage, setErrorMessage] = useState<ReactElement>();
+  const router = useRouter();
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -23,31 +25,25 @@ export default function Login() {
     const email = formData.get("email") as string;
     const password = formData.get("password") as string;
 
-    // For development demo
-    if (email === 'test@example.com' && password === 'password123') {
-      try {
-        // First set the mock session cookie
-        const response = await fetch('/auth/mock-login', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({ email, password }),
-          credentials: 'include',
-        });
+    try {
+      const response = await fetch('http://localhost:8000/auth/login', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ email, password }),
+        credentials: 'include',
+      });
 
-        if (response.ok) {
-          // Then redirect to dashboard
-          window.location.href = 'http://localhost:8080/dashboard';
-        } else {
-          throw new Error('Failed to set session');
-        }
-      } catch (error) {
-        console.error('Login error:', error);
-        setErrorMessage(<p>Login failed. Please try again.</p>);
+      if (response.ok) {
+        router.push('/dashboard');
+      } else {
+        const error = await response.json();
+        setErrorMessage(<p>{error.message || 'Invalid email or password'}</p>);
       }
-    } else {
-      setErrorMessage(<p>Invalid email or password. Use test@example.com / password123</p>);
+    } catch (error) {
+      console.error('Login error:', error);
+      setErrorMessage(<p>Login failed. Please try again.</p>);
     }
   }
 

@@ -75,14 +75,16 @@ router.patch("/:id", authenticate, async (req, res): Promise<void> => {
     const id = req.params.id;
     const userId = req.session!.user.id;
     
-    // Verify ownership
-    const [existingGame] = await db
-      .select()
-      .from(games)
-      .where(and(eq(games.id, id), eq(games.userId, userId)));
-
-    if (!existingGame) {
+    // Check if game exists
+    const [game] = await db.select().from(games).where(eq(games.id, id));
+    if (!game) {
       res.status(404).json({ error: "Game not found" });
+      return;
+    }
+
+    // Check if user owns the game
+    if (game.userId !== userId) {
+      res.status(403).json({ error: "Forbidden: You do not have permission to modify this game" });
       return;
     }
 
@@ -112,14 +114,16 @@ router.delete("/:id", authenticate, async (req, res): Promise<void> => {
     const id = req.params.id;
     const userId = req.session!.user.id;
 
-    // Verify ownership
-    const [existingGame] = await db
-      .select()
-      .from(games)
-      .where(and(eq(games.id, id), eq(games.userId, userId)));
-
-    if (!existingGame) {
+    // Check if game exists
+    const [game] = await db.select().from(games).where(eq(games.id, id));
+    if (!game) {
       res.status(404).json({ error: "Game not found" });
+      return;
+    }
+
+    // Check if user owns the game
+    if (game.userId !== userId) {
+      res.status(403).json({ error: "Forbidden: You do not have permission to delete this game" });
       return;
     }
 
