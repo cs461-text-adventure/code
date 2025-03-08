@@ -9,17 +9,6 @@ export interface Item {
   description: string;
 }
 
-interface GameData {
-  rooms: [
-    {
-      id: string;
-      description: string;
-      inventory: Item[];
-      connections: [string, string];
-    },
-  ];
-}
-
 interface Game {
   id: string;
   name: string;
