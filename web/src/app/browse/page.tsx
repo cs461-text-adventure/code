@@ -19,12 +19,10 @@ interface GameData {
     },
   ];
 }
-// TODO: Move typing into seperate file
+
 interface Game {
   id: string;
-  userId: string;
   name: string;
-  data: GameData;
   isPublic: boolean;
   author: string;
 }
@@ -32,24 +30,31 @@ interface Game {
 export default function Browse() {
   const [games, setGames] = useState<Game[] | null>(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     async function fetchGames() {
       try {
         const response = await fetch(
           `${process.env.NEXT_PUBLIC_API_URL}/games`,
+          {
+            credentials: 'include',
+          }
         );
+        
         if (!response.ok) {
           throw new Error(`Error: ${response.status} ${response.statusText}`);
         }
+        
         const data = await response.json();
         setGames(data);
       } catch (err: unknown) {
         if (err instanceof Error) {
-          console.log(err.message);
+          setError(err.message);
         } else {
-          console.log("An unexpected error occurred:", err);
+          setError("An unexpected error occurred");
         }
+        console.error('Failed to fetch games:', err);
       } finally {
         setLoading(false);
       }
@@ -68,12 +73,25 @@ export default function Browse() {
     );
   }
 
+  if (error) {
+    return (
+      <main className="md:flex md:bg-gray-50 md:items-center md:justify-center min-h-screen min-w-64 dark:bg-slate-900 dark:md:bg-gray-950">
+        <div className="px-8 pt-4 md:pt-8 md:pb-8 md:rounded-3xl md:min-h-[430px] dark:bg-slate-900 bg-white md:w-[26rem] w-full text-md md:border border-gray-300 dark:border-gray-800">
+          <h1 className="text-2xl font-bold text-center mb-4">Browse Games</h1>
+          <div className="p-3 rounded-lg bg-red-600/25 text-red-700 dark:text-red-500 border border-red-600">
+            {error}
+          </div>
+        </div>
+      </main>
+    );
+  }
+
   if (!games || games.length === 0) {
     return (
       <main className="md:flex md:bg-gray-50 md:items-center md:justify-center min-h-screen min-w-64 dark:bg-slate-900 dark:md:bg-gray-950">
         <div className="px-8 pt-4 md:pt-8 md:pb-8 md:rounded-3xl md:min-h-[430px] dark:bg-slate-900 bg-white md:w-[26rem] w-full text-md md:border border-gray-300 dark:border-gray-800">
           <h1 className="text-2xl font-bold text-center mb-4">Browse Games</h1>
-          <p className="text-gray-500 text-center">No games found.</p>
+          <p className="text-gray-500 text-center">No public games found.</p>
         </div>
       </main>
     );
