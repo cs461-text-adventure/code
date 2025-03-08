@@ -16,7 +16,7 @@
  * Users with expired sessions will be prompted to log in again.
  */
 
-import { FormEvent, useState, ReactElement } from 'react';
+import { useState } from 'react';
 
 // Template options for quick start
 const templates = [
