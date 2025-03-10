@@ -4,6 +4,8 @@ import { db } from "@/db/index";
 import { games, invites } from "@/db/schema";
 import { authenticate } from "@/lib/middleware";
 
+const isProduction = process.env.NODE_ENV === "production";
+const origin = isProduction ? `https://${process.env.DOMAIN}` : `http://localhost`;
 const router = express.Router();
 
 router.post("/", authenticate, async (req: Request, res: Response) => {
@@ -43,7 +45,7 @@ router.post("/", authenticate, async (req: Request, res: Response) => {
   )[0].id;
 
   // Return the invite
-  res.status(201).json(`${process.env.ORIGIN}/invite/${inviteId}`);
+  res.status(201).json(`${origin}/invite/${inviteId}`);
 });
 
 router.get("/:id", async (req, res) => {
