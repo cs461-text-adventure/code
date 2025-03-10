@@ -3,17 +3,14 @@ import { betterAuth } from "better-auth";
 import { openAPI } from "better-auth/plugins";
 import { passkey } from "better-auth/plugins/passkey";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
-import { db } from "@/db/index";
+import { db } from "@db";
+import * as schema from "@db";
 import { hash as argon2Hash, verify as argon2Verify } from "@node-rs/argon2";
-import * as schema from "@/db/schema";
+import { isProduction, DOMAIN, ORIGIN } from "@config";
 
 // import { reactInvitationEmail } from "./email/invitation";
 // import { reactResetPasswordEmail } from "./email/rest-password";
-import { sendEmail } from "@/email/index";
-
-const isProduction = process.env.NODE_ENV === "production";
-const DOMAIN = process.env.DOMAIN || "localhost";
-const origin = isProduction ? `https://${DOMAIN}` : `http://localhost`;
+import { sendEmail } from "@email";
 
 export const auth = betterAuth({
   database: drizzleAdapter(db, {
@@ -58,7 +55,7 @@ export const auth = betterAuth({
     passkey({
       rpID: "localhost", // TODO: unique identifer
       rpName: process.env.APP_NAME as string,
-      origin: origin,
+      origin: ORIGIN,
     }),
     openAPI(),
     // emailOTP({

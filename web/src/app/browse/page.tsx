@@ -27,14 +27,14 @@ export default function Browse() {
         const response = await fetch(
           `${process.env.NEXT_PUBLIC_API_URL}/games`,
           {
-            credentials: 'include',
-          }
+            credentials: "include",
+          },
         );
-        
+
         if (!response.ok) {
           throw new Error(`Error: ${response.status} ${response.statusText}`);
         }
-        
+
         const data = await response.json();
         setGames(data);
       } catch (err: unknown) {
@@ -43,7 +43,7 @@ export default function Browse() {
         } else {
           setError("An unexpected error occurred");
         }
-        console.error('Failed to fetch games:', err);
+        console.error("Failed to fetch games:", err);
       } finally {
         setLoading(false);
       }
@@ -91,14 +91,10 @@ export default function Browse() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full">
         <div className="md:rounded-3xl dark:bg-slate-900 bg-white md:border border-gray-300 dark:border-gray-800 p-6 mb-6">
           <h1 className="text-2xl font-bold mb-6">Browse Games</h1>
-          
+
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {games.map((game) => (
-              <Link
-                key={game.id}
-                className="block"
-                href={`/play/${game.id}`}
-              >
+              <Link key={game.id} className="block" href={`/play/${game.id}`}>
                 <div className="p-4 rounded-lg dark:bg-slate-900 bg-white border border-gray-300 dark:border-gray-800 hover:shadow-md transition-shadow">
                   <h3 className="font-bold text-lg">{game.name}</h3>
                   <p className="text-gray-500 mt-2">Author: {game.author}</p>

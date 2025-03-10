@@ -1,60 +1,12 @@
-import type { MetadataRoute } from 'next'
- 
+import type { MetadataRoute } from "next";
+
 export default function sitemap(): MetadataRoute.Sitemap {
   return [
-    {
-      url: 'http://localhost/dashboard',
-      lastModified: new Date(),
-      changeFrequency: 'yearly',
-      priority: 1,
-    },
-    {
-        url: 'http://localhost/forgot-password',
-        lastModified: new Date(),
-        changeFrequency: 'yearly',
-        priority: 1,
-    },
-    {
-        url: 'http://localhost/login',
-        lastModified: new Date(),
-        changeFrequency: 'yearly',
-        priority: 1,
-    },
-    {
-        url: 'http://localhost/play',
-        lastModified: new Date(),
-        changeFrequency: 'yearly',
-        priority: 1,
-    },
-    {
-        url: 'http://localhost/privacy',
-        lastModified: new Date(),
-        changeFrequency: 'yearly',
-        priority: 1,
-    },
-    {
-        url: 'http://localhost/terms',
-        lastModified: new Date(),
-        changeFrequency: 'yearly',
-        priority: 1,
-    },
-    {
-        url: 'http://localhost/support',
-        lastModified: new Date(),
-        changeFrequency: 'yearly',
-        priority: 1,
-    },
-    {
-        url: 'http://localhost/reset-password',
-        lastModified: new Date(),
-        changeFrequency: 'yearly',
-        priority: 1,
-    },
-    {
-        url: 'http://localhost/verify-email',
-        lastModified: new Date(),
-        changeFrequency: 'yearly',
-        priority: 1,
-    },
-  ]
+    { url: "https://texterra.xyz/about" },
+    { url: "https://texterra.xyz/browse" },
+    { url: "https://texterra.xyz/dashboard" },
+    { url: "https://texterra.xyz/forgot-password" },
+    { url: "https://texterra.xyz/login" },
+    { url: "https://texterra.xyz/signup" },
+  ];
 }
