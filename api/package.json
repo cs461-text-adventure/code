@@ -14,7 +14,6 @@
     "@scalar/express-api-reference": "^0.4.172",
     "@types/cors": "^2.8.17",
     "better-auth": "^1.2.3",
-    "cookie-parser": "^1.4.7",
     "cors": "^2.8.5",
     "dotenv": "^16.4.7",
     "drizzle-orm": "^0.36.4",
@@ -24,8 +23,6 @@
   },
   "devDependencies": {
     "@eslint/js": "^9.16.0",
-    "@types/cookie-parser": "^1.4.8",
-    "@types/cors": "^2.8.17",
     "@types/express": "^5.0.0",
     "@types/node": "^22.10.1",
     "@types/pg": "^8.11.10",

@@ -13,7 +13,7 @@ router.post("/", authenticate, async (req: Request, res: Response) => {
 
   const { gameId, expiration } = req.body;
 
-  // TODO: Validate the input
+  // Validate the input
   if (!gameId || !expiration) {
     res.status(400).json({ message: "Game and expiry are required" }); // TODO: Change error message
     return;
@@ -43,7 +43,7 @@ router.post("/", authenticate, async (req: Request, res: Response) => {
   )[0].id;
 
   // Return the invite
-  res.status(201).json(`${process.env.ORIGIN}/invite/${inviteId}`);
+  res.status(201).json(`${process.env.ORIGIN}/play/${inviteId}`);
 });
 
 router.get("/:id", async (req, res) => {
