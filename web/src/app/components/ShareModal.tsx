@@ -1,8 +1,8 @@
-'use client';
+"use client";
 
 /**
  * ShareModal Component
- * 
+ *
  * A reusable modal component for sharing game links. Features include:
  * - Copy to clipboard functionality
  * - Keyboard support (Escape to close)
@@ -10,7 +10,7 @@
  * - Visual feedback for actions
  */
 
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from "react";
 
 /**
  * Props for the ShareModal component
@@ -30,29 +30,69 @@ interface ShareModalProps {
  * A modal component for sharing game links
  * Provides a user interface for copying and sharing game URLs
  */
-export default function ShareModal({ isOpen, onClose, gameId, gameName }: ShareModalProps) {
+export default function ShareModal({
+  isOpen,
+  onClose,
+  gameId,
+  gameName,
+}: ShareModalProps) {
+  const [gameUrl, setGameUrl] = useState<string | null>(null);
   const modalRef = useRef<HTMLDivElement>(null);
-  const gameUrl = typeof window !== 'undefined' ? `${window.location.origin}/play/${gameId}` : '';
+
+  useEffect(() => {
+    async function fetchInvite() {
+      try {
+        const response = await fetch(
+          `${process.env.NEXT_PUBLIC_API_URL}/invite`,
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              gameId: gameId,
+              expiration: 86400, // TODO: change expiration (default 24hrs)
+            }),
+          },
+        );
+
+        if (!response.ok) {
+          throw new Error(`HTTP error! Status: ${response.status}`); // TODO: Change error
+        }
+
+        const data = await response.json();
+        setGameUrl(data);
+      } catch (error) {
+        console.error("Failed to fetch invite:", error); // TODO: Change error
+      }
+    }
+
+    if (isOpen && !gameUrl) {
+      fetchInvite();
+    }
+  }, [isOpen, gameId, gameUrl]);
 
   useEffect(() => {
     const handleEscape = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') {
+      if (event.key === "Escape") {
         onClose();
       }
     };
 
     if (isOpen) {
-      document.addEventListener('keydown', handleEscape);
-      document.body.style.overflow = 'hidden';
+      document.addEventListener("keydown", handleEscape);
+      document.body.style.overflow = "hidden";
     }
 
     return () => {
-      document.removeEventListener('keydown', handleEscape);
-      document.body.style.overflow = 'unset';
+      document.removeEventListener("keydown", handleEscape);
+      document.body.style.overflow = "unset";
     };
   }, [isOpen, onClose]);
 
   if (!isOpen) return null;
+
+  if (!gameUrl) return null; // TODO: Change error behavior
 
   /**
    * Handles copying the game URL to clipboard
@@ -62,13 +102,14 @@ export default function ShareModal({ isOpen, onClose, gameId, gameName }: ShareM
     try {
       await navigator.clipboard.writeText(gameUrl);
       // Show success message
-      const el = document.createElement('div');
-      el.className = 'fixed bottom-4 right-4 bg-green-100 text-green-700 px-4 py-2 rounded-md shadow-lg z-50';
-      el.textContent = 'Game link copied to clipboard!';
+      const el = document.createElement("div");
+      el.className =
+        "fixed bottom-4 right-4 bg-green-100 text-green-700 px-4 py-2 rounded-md shadow-lg z-50";
+      el.textContent = "Game link copied to clipboard!";
       document.body.appendChild(el);
       setTimeout(() => el.remove(), 2000);
     } catch (err) {
-      console.error('Failed to copy:', err);
+      console.error("Failed to copy:", err);
     }
   };
 
@@ -76,22 +117,35 @@ export default function ShareModal({ isOpen, onClose, gameId, gameName }: ShareM
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
       <div
         ref={modalRef}
-        className="bg-white rounded-lg p-6 max-w-md w-full mx-4 relative"
+        className="dark:bg-slate-900 bg-white rounded-lg p-6 max-w-md w-full mx-4 relative"
         onClick={(e) => e.stopPropagation()}
       >
         <button
           onClick={onClose}
-          className="absolute top-4 right-4 text-gray-400 hover:text-gray-500"
+          className="absolute top-4 right-4 text-gray-300 hover:text-gray-500"
         >
-          <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            className="h-6 w-6"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M6 18L18 6M6 6l12 12"
+            />
           </svg>
         </button>
 
-        <h2 className="text-xl font-semibold mb-4">Share &quot;{gameName}&quot;</h2>
-        
+        <h2 className="text-xl font-semibold mb-4">
+          Share &quot;{gameName}&quot;
+        </h2>
+
         <div className="mb-6">
-          <label className="block text-sm font-medium text-gray-700 mb-2">
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
             Game Link
           </label>
           <div className="flex">
@@ -99,28 +153,24 @@ export default function ShareModal({ isOpen, onClose, gameId, gameName }: ShareM
               type="text"
               readOnly
               value={gameUrl}
-              className="flex-1 block w-full rounded-l-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
+              className="dark:bg-gray-800 p-2 flex-1 block w-full rounded-l-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
             />
             <button
               onClick={handleCopy}
               className="inline-flex items-center px-4 py-2 border border-l-0 border-gray-300 rounded-r-md bg-gray-50 text-sm font-medium text-gray-700 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
             >
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                className="h-5 w-5 mr-2"
+                viewBox="0 0 20 20"
+                fill="currentColor"
+              >
                 <path d="M8 3a1 1 0 011-1h2a1 1 0 110 2H9a1 1 0 01-1-1z" />
                 <path d="M6 3a2 2 0 00-2 2v11a2 2 0 002 2h8a2 2 0 002-2V5a2 2 0 00-2-2 3 3 0 01-3 3H9a3 3 0 01-3-3z" />
               </svg>
               Copy
             </button>
           </div>
-        </div>
-
-        <div className="mt-6 flex justify-end">
-          <button
-            onClick={onClose}
-            className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500"
-          >
-            Close
-          </button>
         </div>
       </div>
     </div>

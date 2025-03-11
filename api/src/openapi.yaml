@@ -5,6 +5,9 @@ info:
     API for Text Adventure website.
 servers:
   - url: https://api.texterra.xyz
+    description: Production server
+  - url: http://localhost/api
+    description: Local development server
 tags:
   - name: invite
     description: Operations related to game invites

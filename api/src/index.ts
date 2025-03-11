@@ -3,20 +3,19 @@ import path from "path";
 import cors from "cors";
 import express from "express";
 import { toNodeHandler } from "better-auth/node";
-import { auth } from "@/lib/auth";
-
+import { auth } from "@lib";
 import { apiReference } from "@scalar/express-api-reference";
+import { origin, isProduction } from "@config";
 
 import gameRoutes from "./routes/games";
 import inviteRoutes from "./routes/invite";
 
 const app = express();
 const port = 8000;
-const isProduction = process.env.NODE_ENV === "production";
 
 app.use(
   cors({
-    origin: isProduction ? `https://${process.env.DOMAIN}` : `http://localhost`,
+    origin: origin,
     methods: ["GET", "POST", "PUT", "DELETE"],
     credentials: true,
   }),

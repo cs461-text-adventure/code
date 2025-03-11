@@ -1,82 +1,114 @@
 import express, { Request, Response } from "express";
 import { eq } from "drizzle-orm";
-import { db } from "@/db/index";
-import { games, invites } from "@/db/schema";
-import { authenticate } from "@/lib/middleware";
+import { z } from "zod";
+import {
+  createSelectSchema,
+  createInsertSchema,
+} from "drizzle-zod";
+import { db, games, invites } from "@db";
+import { authenticate } from "@lib";
+import { ORIGIN } from "@config";
+
+const gameSelectSchema = createSelectSchema(games);
+const inviteSelectSchema = createSelectSchema(invites);
+const inviteInsertSchema = createInsertSchema(invites).strict();
+const gameIdSchema = z.string().uuid();
+const inviteIdSchema = z.string().uuid();
+const expirationSchema = z.number();
+
+const inviteRequestSchema = z
+  .object({
+    gameId: gameIdSchema,
+    expiration: expirationSchema,
+  })
+  .strict();
 
 const router = express.Router();
 
 router.post("/", authenticate, async (req: Request, res: Response) => {
-  // Get the user session:
-  const session = req.session;
-  const userId = session!.user.id;
+  try {
+    // Validate input
+    const { gameId, expiration } = inviteRequestSchema.parse(req.body);
+    const userId = req.session!.user.id;
 
-  const { gameId, expiration } = req.body;
+    // Ensure game exists
+    const [game] = await db.select().from(games).where(eq(games.id, gameId));
+    if (!game) {
+      res.status(404).json({ message: "Game not found" }); // TODO: Change error message
+      return;
+    }
 
-  // TODO: Validate the input
-  if (!gameId || !expiration) {
-    res.status(400).json({ message: "Game and expiry are required" }); // TODO: Change error message
-    return;
+    // Ensure game belongs to the current user
+    const validatedGame = gameSelectSchema.parse(game);
+    if (validatedGame.userId !== userId) {
+      res.status(403).json({ message: "Unauthorized to invite for this game" }); // TODO: Change error message
+      return;
+    }
+
+    // Get the expiration date
+    const expirationDate = new Date(Date.now() + expiration * 1000);
+
+    // TODO: Allow for persistent invites
+
+    // Insert the newly created invite into the database
+    const validatedInvite = inviteInsertSchema.parse({
+      userId,
+      gameId,
+      expiration: expirationDate,
+    });
+    const [newInvite] = await db
+      .insert(invites)
+      .values(validatedInvite)
+      .returning({ id: invites.id });
+
+    // // Return the invite
+    res.status(201).json(`${ORIGIN}/invite/${newInvite.id}`);
+  } catch (error) {
+    if (error instanceof z.ZodError) {
+      res.status(400).json({
+        message: "Invalid invite content", // TODO: Error message
+        documentation_url: `${ORIGIN}/api/#tag/invite/POST/invite`,
+      });
+    } else {
+      console.error(error); // TODO: Edit error message
+      res.status(500).json({ message: "Internal server error" }); // TODO: Edit error message
+    }
   }
-
-  // Ensure game exists and belongs to the current user
-  const game = await db.select().from(games).where(eq(games.id, gameId));
-  if (!game.length || game[0].userId != userId) {
-    res.status(403).json({ message: "Unauthorized" }); // TODO: Change error message
-    return;
-  }
-
-  // Get the expiration date
-  const currentTime = new Date();
-  const expirationDate = new Date(currentTime.getTime() + expiration * 1000);
-
-  // TODO: Allow for persistent invites
-
-  // Insert the newly created invite into the database
-  const invite: typeof invites.$inferInsert = {
-    gameId,
-    expiration: expirationDate,
-    userId,
-  };
-  const inviteId = (
-    await db.insert(invites).values(invite).returning({ id: invites.id })
-  )[0].id;
-
-  // Return the invite
-  res.status(201).json(`${process.env.ORIGIN}/invite/${inviteId}`);
 });
 
 router.get("/:id", async (req, res) => {
-  // TODO: ADD INPUT VALIDATION
+  try {
+    const id = inviteIdSchema.parse(req.params.id);
 
-  const id = req.params.id;
+    const [invite] = await db.select().from(invites).where(eq(invites.id, id));
 
-  // Validate input
-  if (!id) {
-    res.status(400).json({ error: "Invalid invite ID" }); // TODO: CHANGE ERROR MESSAGE
-    return;
+    if (!invite) {
+      res.status(404).json({ message: "Invite not found" }); // TODO: CHANGE ERROR MESSAGE
+      return;
+    }
+
+    const validatedInvite = inviteSelectSchema.parse(invite);
+
+    const currentTime = new Date();
+    if (currentTime > validatedInvite.expiration) {
+      // Delete the expired invite from the database
+      await db.delete(invites).where(eq(invites.id, id));
+      res.status(410).json({ message: "Invite has expired" }); // TODO: CHANGE ERROR MESSAGE
+      return;
+    }
+
+    res.status(200).json({ gameId: invite.gameId });
+  } catch (error) {
+    if (error instanceof z.ZodError) {
+      res.status(400).json({
+        message: "Invalid ID format", // TODO: Error message
+        documentation_url: `${ORIGIN}/api/#tag/invite/GET/invite`,
+      });
+    } else {
+      console.error(error); // TODO: Edit error message
+      res.status(500).json({ message: "Internal server error" }); // TODO: Edit error message
+    }
   }
-
-  const inviteResult = await db
-    .select()
-    .from(invites)
-    .where(eq(invites.id, id));
-  const invite = inviteResult[0];
-
-  if (!invite) {
-    res.status(404).json({ error: "invite not found" }); // TODO: CHANGE ERROR MESSAGE
-    return;
-  }
-
-  const currentTime = new Date();
-  if (currentTime > invite.expiration) {
-    // Delete the expired invite from the database
-    await db.delete(invites).where(eq(invites.id, id));
-    res.status(410).json({ error: "invite has expired" }); // TODO: CHANGE ERROR MESSAGE
-    return;
-  }
-
-  res.send({ gameId: invite.gameId });
 });
 
 export default router;

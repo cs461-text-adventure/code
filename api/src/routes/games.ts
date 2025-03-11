@@ -1,100 +1,185 @@
 import "dotenv/config";
 import express from "express";
 import { eq } from "drizzle-orm";
-import { db } from "@/db/index";
-import { games, user } from "@/db/schema";
-import { authenticate } from "@/lib/middleware";
+import { z } from "zod";
+import {
+  createSelectSchema,
+  createInsertSchema,
+  createUpdateSchema,
+} from "drizzle-zod";
+import { db, games, user } from "@db";
+import { authenticate } from "@lib";
+import { ORIGIN } from "@config";
+
+const gameSelectSchema = createSelectSchema(games);
+const gameInsertSchema = createInsertSchema(games).strict();
+const gameUpdateSchema = createUpdateSchema(games).strict();
+const gameIdSchema = z.string().uuid();
 
 const router = express.Router();
 
-// CREATE
+/**
+ * Creates a new game entry in the database.
+ * @param {Object} req.body - The game data to insert.
+ * @returns {Object} - The newly created game data.
+ * @throws {Error} - If validation fails or database insertion fails.
+ */
 router.post("/", authenticate, async (req, res) => {
-  // TODO: ADD INPUT VALIDATION
-  const userId = req.session!.user.id;
+  try {
+    const userId = req.session!.user.id;
+    const input = { ...req.body, userId };
 
-  const { name, data, isPublic } = req.body;
-  const game: typeof games.$inferInsert = { name, userId, data, isPublic };
+    const game = gameInsertSchema.parse(input);
+    const [newGame] = await db.insert(games).values(game).returning();
 
-  const [newGame] = await db.insert(games).values(game).returning();
-  res.status(201).json(newGame);
+    res.status(201).json(newGame);
+  } catch (error) {
+    if (error instanceof z.ZodError) {
+      res.status(400).json({
+        message: "Invalid game content", // TODO: Error message
+        documentation_url: `${ORIGIN}/api/#tag/games/POST/games`,
+      });
+    } else {
+      console.error(error); // TODO: Edit error message
+      res.status(500).json({ message: "Internal server error" }); // TODO: Edit error message
+    }
+  }
 });
 
-// GET ALL PUBLIC GAMES
+/**
+ * Retrieves a list of all public games.
+ * @returns {Array} - A list of public games.
+ */
 router.get("/", async (req, res) => {
-  // TODO: ADD PAGINATION
-  const gamesList = await db
-    .select({
-      id: games.id,
-      name: games.name,
-      isPublic: games.isPublic,
-      author: user.name,
-    })
-    .from(games)
-    .innerJoin(user, eq(games.userId, user.id))
-    .where(eq(games.isPublic, true));
-  res.json(gamesList);
+  try {
+    // TODO: Add pagination
+    const gamesList = await db
+      .select({
+        id: games.id,
+        name: games.name,
+        isPublic: games.isPublic,
+        data: games.data,
+        userId: games.userId,
+        author: user.name,
+      })
+      .from(games)
+      .innerJoin(user, eq(games.userId, user.id))
+      .where(eq(games.isPublic, true));
+
+    const validatedGames = gamesList.map((game) => {
+      const validatedGame = gameSelectSchema.parse(game);
+      return { ...validatedGame, author: game.author };
+    });
+
+    res.status(200).json(validatedGames);
+  } catch (error) {
+    console.error(error); // TODO: Edit error message
+    res.status(500).json({ message: "Internal server error" }); // TODO: Edit error message
+  }
 });
 
-// GET ALL LOGGED IN USER'S GAMES
+/**
+ * Retrieves a list of games owned by the logged-in user.
+ * @param {Object} req.session.user.id - The user's ID from session.
+ * @returns {Array} - A list of games owned by the user.
+ */
 router.get("/me", authenticate, async (req, res) => {
   const userId = req.session!.user.id;
-  const gamesList = await db
-    .select()
-    .from(games)
-    .where(eq(games.userId, userId));
-  res.json(gamesList);
-});
 
-// READ
-router.get("/:id", async (req, res) => {
-  // TODO: ADD INPUT VALIDATION
-  const id = req.params.id;
+  try {
+    const gamesList = await db
+      .select()
+      .from(games)
+      .where(eq(games.userId, userId));
 
-  const game = await db
-    .select({
-      id: games.id,
-      name: games.name,
-      isPublic: games.isPublic,
-      data: games.data,
-      author: user.name,
-    })
-    .from(games)
-    .innerJoin(user, eq(games.userId, user.id)) // Join with user table
-    .where(eq(games.id, id));
+    const validatedGames = gamesList.map((game) => {
+      return gameSelectSchema.parse(game);
+    });
 
-  if (!game.length) {
-    res.status(404).json({ error: "Game not found" }); // TODO: EDIT ERROR MESSAGE
-    return;
+    res.status(200).json(validatedGames);
+  } catch (error) {
+    console.error(error); // TODO: Edit error message
+    res.status(500).json({ message: "Internal server error" }); // TODO: Edit error message
   }
-
-  res.json(game[0]);
 });
 
-// UPDATE
+/**
+ * Retrieves a single game by its ID.
+ * @param {string} req.params.id - The ID of the game to retrieve.
+ * @returns {Object} - The game data.
+ * @throws {Error} - If the game is not found or validation fails.
+ */
+router.get("/:id", async (req, res) => {
+  try {
+    const id = gameIdSchema.parse(req.params.id);
+
+    const [game] = await db
+      .select({
+        id: games.id,
+        name: games.name,
+        isPublic: games.isPublic,
+        data: games.data,
+        userId: games.userId,
+        author: user.name,
+      })
+      .from(games)
+      .innerJoin(user, eq(games.userId, user.id))
+      .where(eq(games.id, id));
+
+    if (!game) {
+      res.status(404).json({ error: "Game not found" }); // TODO: error message
+      return;
+    }
+    const validatedGame = gameSelectSchema.parse(game);
+    const gameWithAuthor = { ...validatedGame, author: game.author };
+
+    res.status(200).json(gameWithAuthor);
+  } catch (error) {
+    console.error(error);
+    if (error instanceof z.ZodError) {
+      res.status(400).json({
+        message: "Invalid game ID format", // TODO: error message
+        documentation_url: `${ORIGIN}/api/#tag/games/GET/games/{id}`,
+      });
+    } else {
+      console.error(error); // TODO: Edit error message
+      res.status(500).json({ message: "Internal server error" }); // TODO: Edit error message
+    }
+  }
+});
+
+/**
+ * Updates an existing game by its ID.
+ * @param {string} req.params.id - The ID of the game to update.
+ * @param {Object} req.body - The fields to update on the game.
+ * @returns {Object} - The updated game data.
+ * @throws {Error} - If the game is not found or validation fails.
+ */
 router.patch("/:id", authenticate, async (req, res) => {
   try {
-    const id = req.params.id;
+    const id = gameIdSchema.parse(req.params.id);
     const userId = req.session!.user.id;
 
     // Check if game exists
     const [game] = await db.select().from(games).where(eq(games.id, id));
     if (!game) {
-      res.status(404).json({ error: "Game not found" });
+      res.status(404).json({ error: "Game not found" }); // TODO: error message
       return;
     }
 
     // Check if user owns the game
     if (game.userId !== userId) {
-      res.status(403).json({ error: "Forbidden: You do not have permission to modify this game" }); // TODO: Edit error message
+      res.status(403).json({
+        error: "Forbidden: You do not have permission to modify this game", // TODO: error message
+      });
       return;
     }
 
-    const { name, data, isPublic } = req.body;
-    const updates: Partial<typeof games.$inferInsert> = {};
-    
-    if (name !== undefined) updates.name = name;
-    if (data !== undefined) updates.data = data;
-    if (isPublic !== undefined) updates.isPublic = isPublic;
+    const updates = gameUpdateSchema.parse(req.body);
+    if (Object.keys(updates).length === 0) {
+      res.status(200).json(game);
+      return;
+    }
 
     const [updatedGame] = await db
       .update(games)
@@ -102,27 +187,37 @@ router.patch("/:id", authenticate, async (req, res) => {
       .where(eq(games.id, id))
       .returning();
 
-    res.json(updatedGame);
+    res.status(200).json(updatedGame);
   } catch (error) {
-    console.error("Error updating game:", error);
-    res.status(500).json({ error: "Internal server error" });
+    if (error instanceof z.ZodError) {
+      res.status(400).json({
+        message: "Invalid game data for update", // TODO: error message
+        documentation_url: `${ORIGIN}/api/#tag/games/PATCH/games/{id}`,
+      });
+    } else {
+      console.error(error); // TODO: Edit error message
+      res.status(500).json({ message: "Internal server error" }); // TODO: Edit error message
+    }
   }
 });
 
-// DELETE
+/**
+ * Deletes a game by its ID.
+ * @param {string} req.params.id - The ID of the game to delete.
+ * @returns {string} - Status code 204 indicating successful deletion.
+ * @throws {Error} - If the game is not found or user does not have permission.
+ */
 router.delete("/:id", authenticate, async (req, res) => {
   try {
-    const id = req.params.id;
+    const id = gameIdSchema.parse(req.params.id);
     const userId = req.session!.user.id;
 
-    // Check if game exists
     const [game] = await db.select().from(games).where(eq(games.id, id));
     if (!game) {
       res.status(404).json({ error: "Game not found" }); // TODO: Edit error message
       return;
     }
 
-    // Check if user owns the game
     if (game.userId !== userId) {
       res.status(403).json({
         error: "Forbidden: You do not have permission to delete this game",
@@ -133,8 +228,15 @@ router.delete("/:id", authenticate, async (req, res) => {
     await db.delete(games).where(eq(games.id, id));
     res.status(204).send();
   } catch (error) {
-    console.error("Error deleting game:", error);
-    res.status(500).json({ error: "Internal server error" }); // TODO: Edit error message
+    if (error instanceof z.ZodError) {
+      res.status(400).json({
+        message: "Invalid game ID format", // TODO: Edit error message
+        documentation_url: `${ORIGIN}/api/#tag/games/DELETE/games/{id}`,
+      });
+    } else {
+      console.error("Error deleting game:", error); // TODO: Edit error message
+      res.status(500).json({ message: "Internal server error" }); // TODO: Edit error message
+    }
   }
 });
 

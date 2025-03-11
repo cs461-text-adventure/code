@@ -1,10 +1,8 @@
 {
   "compilerOptions": {
-    "baseUrl": "src/",
+    "baseUrl": "src",
     "paths": {
-      "@/db/*": ["db/*"],
-      "@/lib/*": ["lib/*"],
-      "@/email/*": ["email/*"]
+      "@*": ["*"]
     },
     "strict": true,
     "noEmit": true,
