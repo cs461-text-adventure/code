@@ -37,11 +37,11 @@ export const auth = betterAuth({
       verify: ({ hash, password }) => argon2Verify(hash, password),
     },
     requireEmailVerification: true,
-    sendResetPassword: async ({ user, url }) => {
+    sendResetPassword: async ({ user, token }) => {
       await sendEmail({
         to: user.email,
         subject: "Reset your password",
-        text: `Here is your reset token: <b>${url}</b>`, // TODO: Create email template
+        text: `Here is your reset token: <b>https://${DOMAIN}/reset-password?token=${token}</b>`, // TODO: Create email template
       });
     },
   },
@@ -96,5 +96,5 @@ export const auth = betterAuth({
   },
   trustedOrigins: isProduction
     ? [`https://${DOMAIN}`, `https://api.${DOMAIN}`]
-    : ["http://localhost", "http://localhost:3000"],
+    : ["http://localhost"],
 });

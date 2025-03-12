@@ -5,7 +5,7 @@ import express from "express";
 import { toNodeHandler } from "better-auth/node";
 import { auth } from "@lib";
 import { apiReference } from "@scalar/express-api-reference";
-import { origin, isProduction } from "@config";
+import { DOMAIN, isProduction } from "@config";
 
 import gameRoutes from "./routes/games";
 import inviteRoutes from "./routes/invite";
@@ -15,8 +15,10 @@ const port = 8000;
 
 app.use(
   cors({
-    origin: origin,
-    methods: ["GET", "POST", "PUT", "DELETE"],
+    origin: isProduction
+      ? [`https://${DOMAIN}`, `https://api.${DOMAIN}`]
+      : ["http://localhost"],
+    methods: ["GET", "PATCH", "POST", "PUT", "DELETE"],
     credentials: true,
   }),
 );
