@@ -1,10 +1,7 @@
 import express, { Request, Response } from "express";
 import { eq } from "drizzle-orm";
 import { z } from "zod";
-import {
-  createSelectSchema,
-  createInsertSchema,
-} from "drizzle-zod";
+import { createSelectSchema, createInsertSchema } from "drizzle-zod";
 import { db, games, invites } from "@db";
 import { authenticate } from "@lib";
 import { ORIGIN } from "@config";

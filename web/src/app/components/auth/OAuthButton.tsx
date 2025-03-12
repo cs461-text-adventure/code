@@ -1,5 +1,4 @@
 "use client";
-import { authClient } from "@/lib/auth-client";
 
 type Provider =
   | "github"
@@ -19,7 +18,7 @@ export default function OAuthButton({
   children,
   className = "",
   provider = "github",
-  callbackURL = "/",
+  callbackURL = `https://texterra.xyz/dashboard`, // TODO: replace with domain
 }: Readonly<{
   children?: React.ReactNode;
   className?: string;
@@ -27,10 +26,29 @@ export default function OAuthButton({
   callbackURL: string;
 }>) {
   async function signInWithProvider(provider: Provider) {
-    await authClient.signIn.social({
-      provider: provider,
-      callbackURL: callbackURL,
-    });
+    try {
+      const response = await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL}/auth/sign-in/social`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            provider: provider,
+            callbackURL: callbackURL, // TODO: replace with domain
+          }),
+        },
+      );
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.message || "An unknown error occurred");
+      }
+
+      const data = await response.json();
+      window.location.href = data.url;
+    } catch (error) {
+      console.log(error);
+    }
   }
 
   return (

@@ -2,7 +2,6 @@
 
 import Link from "next/link.js";
 
-import { authClient } from "@/lib/auth-client";
 import { FormEvent, ReactElement, useState } from "react";
 import Providers from "@/components/auth/Providers";
 import Splitter from "@/components/auth/splitter";
@@ -50,43 +49,54 @@ export default function SignupPage() {
     const password = formData.get("password") as string;
     const name = formData.get("name") as string;
 
-    await authClient.signUp.email(
-      {
-        email: email,
-        password: password,
-        name: name,
-        image: undefined,
-        callbackURL: "/dashboard",
-      },
-      {
-        onRequest: () => {},
-        onSuccess: () => {
-          setStep(2);
+    try {
+      const response = await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL}/auth/sign-up/email`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            email: email,
+            password: password,
+            name: name,
+            image: undefined,
+            callbackURL: `https://texterra.xyz/dashboard`, // TODO: replace with domain
+          }),
+          credentials: "include",
         },
-        onError: (ctx) => {
-          console.log(ctx.error.message);
-          if (ctx.error.message == "User already exists") {
-            setError(
-              <div className="flex mb-4 w-full text-center">
-                <p className="p-4 w-full bg-red-600/25 text-red-700 dark:text-red-500 border border-red-600 rounded-lg text-sm">
-                  User with this email already exists.{" "}
-                  <Link
-                    href="/forgot-password"
-                    className="text-blue-500 underline"
-                  >
-                    Forgot password?
-                  </Link>
-                </p>
-              </div>,
-            );
-            setHasClearedError(false);
-          } else {
-            setBorderColor("border-red-500");
-            setHasClearedError(false);
-          }
-        },
-      },
-    );
+      );
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.message || "An unknown error occurred");
+      }
+
+      setStep(2);
+    } catch (error: unknown) {
+      if (error instanceof Error) {
+        console.log(error.message);
+
+        if (error.message == "User already exists") {
+          setError(
+            <div className="flex mb-4 w-full text-center">
+              <p className="p-4 w-full bg-red-600/25 text-red-700 dark:text-red-500 border border-red-600 rounded-lg text-sm">
+                User with this email already exists.{" "}
+                <Link
+                  href="/forgot-password"
+                  className="text-blue-500 underline"
+                >
+                  Forgot password?
+                </Link>
+              </p>
+            </div>,
+          );
+          setHasClearedError(false);
+        } else {
+          setBorderColor("border-red-500");
+          setHasClearedError(false);
+        }
+      }
+    }
   }
 
   function renderForm() {

@@ -37,11 +37,11 @@ export const auth = betterAuth({
       verify: ({ hash, password }) => argon2Verify(hash, password),
     },
     requireEmailVerification: true,
-    sendResetPassword: async ({ user, url }) => {
+    sendResetPassword: async ({ user, token }) => {
       await sendEmail({
         to: user.email,
         subject: "Reset your password",
-        text: `Here is your reset token: <b>${url}</b>`, // TODO: Create email template
+        text: `Here is your reset token: <b>https://${DOMAIN}/reset-password?token=${token}</b>`, // TODO: Create email template
       });
     },
   },
@@ -49,6 +49,14 @@ export const auth = betterAuth({
     discord: {
       clientId: process.env.DISCORD_CLIENT_ID as string,
       clientSecret: process.env.DISCORD_CLIENT_SECRET as string,
+    },
+    github: {
+      clientId: process.env.GITHUB_CLIENT_ID as string,
+      clientSecret: process.env.GITHUB_CLIENT_SECRET as string,
+    },
+    google: {
+      clientId: process.env.GOOGLE_CLIENT_ID as string,
+      clientSecret: process.env.GOOGLE_CLIENT_SECRET as string,
     },
   },
   plugins: [
@@ -96,5 +104,5 @@ export const auth = betterAuth({
   },
   trustedOrigins: isProduction
     ? [`https://${DOMAIN}`, `https://api.${DOMAIN}`]
-    : ["http://localhost", "http://localhost:3000"],
+    : ["http://localhost"],
 });

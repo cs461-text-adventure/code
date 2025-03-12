@@ -1,7 +1,5 @@
 "use client";
 
-import { authClient } from "@/lib/auth-client";
-
 export default function OAuthProviders() {
   async function signInWithProvider(
     provider:
@@ -18,20 +16,29 @@ export default function OAuthProviders() {
       | "linkedin"
       | "gitlab",
   ) {
-    // TODO: REPLACE WITH FETCH API INSTEAD
+    try {
+      const response = await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL}/auth/sign-in/social`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            provider: provider,
+            callbackURL: `https://texterra.xyz/dashboard`, // TODO: replace with domain
+          }),
+        },
+      );
 
-    // FETCH API.TEXTERRA.XYZ
-    /*
-    body {
-      provider: "discord",
-      callbackURL: "https://texterra.xyz/dashboard"
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.message || "An unknown error occurred");
+      }
+
+      const data = await response.json();
+      window.location.href = data.url;
+    } catch (error) {
+      console.log(error);
     }
-    */
-
-    await authClient.signIn.social({
-      provider: provider,
-      callbackURL: "/dashboard",
-    });
   }
 
   return (
