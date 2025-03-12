@@ -1,7 +1,6 @@
 "use client";
 import { FormEvent, useState } from "react";
 import Link from "next/link";
-import { authClient } from "@/lib/auth-client";
 import AuthError from "@/components/auth/error";
 
 export default function ResetPassword() {
@@ -17,11 +16,23 @@ export default function ResetPassword() {
     setEmail(emailValue);
 
     try {
-      const { error } = await authClient.forgetPassword({
-        email: emailValue,
-        redirectTo: "/reset-password",
-      });
-      if (error) throw new Error(error.message);
+      const response = await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL}/auth/forget-password`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            email: emailValue,
+            redirectTo: "/reset-password",
+          }),
+        },
+      );
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.message || "An unknown error occurred");
+      }
+
       setStep(2);
     } catch (error) {
       console.log(error);

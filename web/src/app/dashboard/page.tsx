@@ -14,7 +14,6 @@ import { useEffect, useState } from "react";
 import ShareModal from "../components/ShareModal";
 import TestGameModal from "../components/TestGameModal";
 import Link from "next/link";
-import { authClient } from "@/lib/auth-client";
 import { useRouter } from "next/navigation";
 
 /**
@@ -85,13 +84,22 @@ export default function Dashboard() {
   const router = useRouter();
 
   async function logout() {
-    await authClient.signOut({
-      fetchOptions: {
-        onSuccess: () => {
-          router.push("/login");
+    try {
+      const response = await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL}/auth/sign-out`,
+        {
+          method: "POST",
+          credentials: "include",
         },
-      },
-    });
+      );
+      if (!response.ok) {
+        throw new Error("Failed to log out"); // TODO: error message
+      }
+      router.push("/login");
+    } catch (error) {
+      // TODO: error handling setErrorMesssage()
+      console.error("Logout error:", error); // TODO: error message
+    }
   }
 
   useEffect(() => {

@@ -53,6 +53,7 @@ export default function ShareModal({
               gameId: gameId,
               expiration: 86400, // TODO: change expiration (default 24hrs)
             }),
+            credentials: "include",
           },
         );
 

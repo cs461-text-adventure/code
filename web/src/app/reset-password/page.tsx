@@ -187,7 +187,6 @@
 import { FormEvent, useState, Suspense } from "react";
 import { useSearchParams, notFound } from "next/navigation";
 // import Link from "next/link";
-import { authClient } from "@/lib/auth-client";
 import AuthError from "@/components/auth/error";
 
 function Main() {
@@ -240,11 +239,23 @@ function Main() {
       setErrorMessage("Passwords do not match");
     } else {
       try {
-        const { error } = await authClient.resetPassword({
-          newPassword: password,
-          token: token!,
-        });
-        if (error) throw new Error(error.message);
+        const response = await fetch(
+          `${process.env.NEXT_PUBLIC_API_URL}/auth/reset-password`,
+          {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              newPassword: password,
+              token: token!,
+            }),
+          },
+        );
+
+        if (!response.ok) {
+          const error = await response.json();
+          throw new Error(error.message || "An unknown error occurred");
+        }
+
         setErrorMessage("");
         setStep(2);
       } catch (error) {

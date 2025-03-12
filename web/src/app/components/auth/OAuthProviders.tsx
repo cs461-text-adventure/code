@@ -8,7 +8,7 @@ export default function OAuthProviders(props: { className: string | null }) {
       <OAuthButton
         className="text-[#5865F2]"
         provider="discord"
-        callbackURL="/dashboard"
+        callbackURL={`https://texterra.xyz/dashboard`} // TODO: replace with domain
       >
         <g transform="translate(8 8) scale(1)">
           <path
@@ -18,7 +18,10 @@ export default function OAuthProviders(props: { className: string | null }) {
         </g>
       </OAuthButton>
 
-      <OAuthButton provider="google" callbackURL="/dashboard">
+      <OAuthButton
+        provider="google"
+        callbackURL={`https://texterra.xyz/dashboard`} // TODO: replace with domain
+      >
         <g clip-path="url(#clip0_710_6227)">
           <path
             d="M29.6 20.2273C29.6 19.5182 29.5364 18.8364 29.4182 18.1818H20V22.05H25.3818C25.15 23.3 24.4455 24.3591 23.3864 25.0682V27.5773H26.6182C28.5091 25.8364 29.6 23.2727 29.6 20.2273Z"
@@ -39,7 +42,10 @@ export default function OAuthProviders(props: { className: string | null }) {
         </g>
       </OAuthButton>
 
-      <OAuthButton provider="github" callbackURL="/dashboard">
+      <OAuthButton
+        provider="github"
+        callbackURL={`https://texterra.xyz/dashboard`} // TODO: replace with domain
+      >
         <g transform="translate(8 8) scale(1)">
           <path
             fill="currentColor"

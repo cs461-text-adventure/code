@@ -54,7 +54,7 @@ export default function NewGame() {
       const parsedData = JSON.parse(data);
 
       // Send POST request to create game
-      const response = await fetch("/api/games", {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/games`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
