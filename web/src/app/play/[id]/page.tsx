@@ -5,7 +5,7 @@ import GamePlayer from "@/components/GamePlayer";
 import { notFound } from "next/navigation";
 import Navbar from "@/components/NavBar";
 import QRCode from 'qrcode';
-import Link from 'next/link';
+import Image from "next/image";
 
 
 
@@ -94,7 +94,7 @@ export default function Games({ params }: { params: Promise<{ id: string }> }) {
 
           const canvas = document.createElement('canvas');
           const ctx = canvas.getContext('2d');
-          const img = new Image();
+          const img =  new window.Image();
           
           img.onload = () => {
             canvas.width = 400;
@@ -247,12 +247,14 @@ export default function Games({ params }: { params: Promise<{ id: string }> }) {
         <div className="flex flex-col items-center justify-center">
     {qrCodeUrl && (
       <div className="text-center">
-        <div className="bg-gradient-to-r from-blue-500 to-violet-500 p-1 rounded-xl shadow-lg">
+                <div className="bg-gradient-to-r from-blue-500 to-violet-500 p-1 rounded-xl shadow-lg">
           <div className="bg-white p-6 rounded-xl">
-            <img 
+            <Image 
               src={qrCodeUrl} 
               alt="Game QR Code"
-              className="w-64 h-64 transform transition-transform hover:scale-105"
+              width={256}
+              height={256}
+              className="transform transition-transform hover:scale-105"
             />
           </div>
         </div>
