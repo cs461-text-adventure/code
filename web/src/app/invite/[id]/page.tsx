@@ -109,7 +109,7 @@ export default function Games({ params }: { params: Promise<{ id: string }> }) {
           </button>
         </div>
       ) : (
-        <GamePlayer gameData={gameData.data} />
+        <GamePlayer gameData={gameData.data} id={gameData.id}/>
       )}
     </main>
   );

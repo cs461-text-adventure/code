@@ -4,10 +4,8 @@ import { useState, useEffect } from "react";
 import GamePlayer from "@/components/GamePlayer";
 import { notFound } from "next/navigation";
 import Navbar from "@/components/NavBar";
-import QRCode from 'qrcode';
+import QRCode from "qrcode";
 import Image from "next/image";
-
-
 
 export interface Item {
   id: string;
@@ -38,22 +36,20 @@ interface Game {
 export default function Games({ params }: { params: Promise<{ id: string }> }) {
   const getRandomColor = () => {
     const colors = [
-      '#3B82F6', // blue
-      '#8B5CF6', // purple
-      '#EC4899', // pink
-      '#10B981', // green
-      '#F59E0B', // yellow
-      '#EF4444', // red
+      "#3B82F6", // blue
+      "#8B5CF6", // purple
+      "#EC4899", // pink
+      "#10B981", // green
+      "#F59E0B", // yellow
+      "#EF4444", // red
     ];
     return colors[Math.floor(Math.random() * colors.length)];
   };
-  
-  
-  
+
   const [gameData, setGameData] = useState<Game | null>(null);
   const [isPlaying, setIsPlaying] = useState(false);
   const [loading, setLoading] = useState(true);
-  const [qrCodeUrl, setQrCodeUrl] = useState('');
+  const [qrCodeUrl, setQrCodeUrl] = useState("");
   const [dotColor, setDotColor] = useState(getRandomColor());
   const [secondColor, setSecondColor] = useState(getRandomColor());
 
@@ -78,67 +74,62 @@ export default function Games({ params }: { params: Promise<{ id: string }> }) {
 
         const game = await gameResponse.json();
         setGameData(game);
-        console.log("g",game)
+        console.log("g", game);
 
-          // Generate QR code
-          const gameUrl = `${window.location.origin}/play/${id}`;
-          const qrCode = await QRCode.toDataURL(gameUrl, {
-            width: 400,
-            margin: 1,
-            errorCorrectionLevel: 'H',
-            color: {
-              dark: dotColor, // U,
-              light: '#FFFFFF',
-            }
-          });
+        // Generate QR code
+        const gameUrl = `${window.location.origin}/play/${id}`;
+        const qrCode = await QRCode.toDataURL(gameUrl, {
+          width: 400,
+          margin: 1,
+          errorCorrectionLevel: "H",
+          color: {
+            dark: dotColor, // U,
+            light: "#FFFFFF",
+          },
+        });
 
-          const canvas = document.createElement('canvas');
-          const ctx = canvas.getContext('2d');
-          const img =  new window.Image();
-          
-          img.onload = () => {
-            canvas.width = 400;
-            canvas.height = 400;
-            ctx?.drawImage(img, 0, 0);
-            
-            if (ctx) {
-              ctx.font = 'bold 36px Arial';
-              ctx.textAlign = 'center';
-              ctx.textBaseline = 'middle';
-              
-              const text = 'Texterra';
-              const textWidth = ctx.measureText(text).width;
-              ctx.fillStyle = 'white';
-              ctx.fillRect(
-                (canvas.width - textWidth) / 2 - 10,
-                canvas.height / 2 - 20,
-                textWidth + 20,
-                40
-              );
-              
-              // Create gradient for text
-              const gradient = ctx.createLinearGradient(
-                (canvas.width - textWidth) / 2,
-                canvas.height / 2,
-                (canvas.width + textWidth) / 2,
-                canvas.height / 2
-              );
-              gradient.addColorStop(0, dotColor);
-              gradient.addColorStop(1, secondColor);
-              
-              ctx.fillStyle = gradient;
-              ctx.fillText('Texterra', canvas.width/2, canvas.height/2);
-            }
-            
-            setQrCodeUrl(canvas.toDataURL());
-          };
-          
-          img.src = qrCode;
+        const canvas = document.createElement("canvas");
+        const ctx = canvas.getContext("2d");
+        const img = new window.Image();
 
+        img.onload = () => {
+          canvas.width = 400;
+          canvas.height = 400;
+          ctx?.drawImage(img, 0, 0);
 
+          if (ctx) {
+            ctx.font = "bold 36px Arial";
+            ctx.textAlign = "center";
+            ctx.textBaseline = "middle";
 
+            const text = "Texterra";
+            const textWidth = ctx.measureText(text).width;
+            ctx.fillStyle = "white";
+            ctx.fillRect(
+              (canvas.width - textWidth) / 2 - 10,
+              canvas.height / 2 - 20,
+              textWidth + 20,
+              40,
+            );
 
+            // Create gradient for text
+            const gradient = ctx.createLinearGradient(
+              (canvas.width - textWidth) / 2,
+              canvas.height / 2,
+              (canvas.width + textWidth) / 2,
+              canvas.height / 2,
+            );
+            gradient.addColorStop(0, dotColor);
+            gradient.addColorStop(1, secondColor);
 
+            ctx.fillStyle = gradient;
+            ctx.fillText("Texterra", canvas.width / 2, canvas.height / 2);
+          }
+
+          setQrCodeUrl(canvas.toDataURL());
+        };
+
+        img.src = qrCode;
       } catch (error) {
         console.error(error);
         notFound();
@@ -148,8 +139,7 @@ export default function Games({ params }: { params: Promise<{ id: string }> }) {
     };
 
     fetchGameData();
-    console.log(params)
-    
+    console.log(params);
   }, [params]);
 
   // Return error if data isn't available after loading
@@ -176,21 +166,21 @@ export default function Games({ params }: { params: Promise<{ id: string }> }) {
           <Navbar />
           <section className="relative min-h-[85vh] flex items-center justify-center bg-gradient-to-br from-gray-900 via-gray-800 to-blue-900">
             <div className="absolute inset-0">
-            <div 
-              className="absolute inset-0 opacity-20" 
+              <div
+                className="absolute inset-0 opacity-20"
                 style={{
-                background: `
+                  background: `
                       radial-gradient(circle at 1px 1px, 
           ${dotColor} 1px, 
           transparent 0
         ),
         linear-gradient(to right, #374151, #ffffff)
       `,
-      backgroundSize: '40px 40px, 100% 100%'
-    }}
-  />
+                  backgroundSize: "40px 40px, 100% 100%",
+                }}
+              />
             </div>
-            
+
             <div className="relative z-10 container mx-auto px-4">
               <div className="max-w-6xl mx-auto bg-white/10 backdrop-blur-sm p-8 rounded-2xl shadow-xl">
                 <div className="grid md:grid-cols-2 gap-8">
@@ -200,8 +190,12 @@ export default function Games({ params }: { params: Promise<{ id: string }> }) {
                       <span className="inline-block px-4 py-1.5 bg-blue-600/10 text-blue-400 rounded-full text-sm font-medium">
                         Text Adventure Game
                       </span>
-                      <h1 className="text-4xl font-bold text-white mt-4 mb-2">{gameData.name}</h1>
-                      <p className="text-xl text-gray-300">Created by {gameData.author}</p>
+                      <h1 className="text-4xl font-bold text-white mt-4 mb-2">
+                        {gameData.name}
+                      </h1>
+                      <p className="text-xl text-gray-300">
+                        Created by {gameData.author}
+                      </p>
                     </div>
 
                     {/* Game Image Placeholder */}
@@ -213,7 +207,8 @@ export default function Games({ params }: { params: Promise<{ id: string }> }) {
                     <div className="bg-white/5 rounded-lg p-4">
                       <h3 className="text-white text-lg mb-2">Description</h3>
                       <p className="text-gray-300">
-                        Embark on an educational journey through ancient mysteries and puzzles...
+                        Embark on an educational journey through ancient
+                        mysteries and puzzles...
                       </p>
                     </div>
 
@@ -243,37 +238,35 @@ export default function Games({ params }: { params: Promise<{ id: string }> }) {
                     </button>
                   </div>
 
-                   {/* Right Column - QR Code */}
-        <div className="flex flex-col items-center justify-center">
-    {qrCodeUrl && (
-      <div className="text-center">
-                <div className="bg-gradient-to-r from-blue-500 to-violet-500 p-1 rounded-xl shadow-lg">
-          <div className="bg-white p-6 rounded-xl">
-            <Image 
-              src={qrCodeUrl} 
-              alt="Game QR Code"
-              width={256}
-              height={256}
-              className="transform transition-transform hover:scale-105"
-            />
-          </div>
-        </div>
-        <p className="mt-4 text-sm text-gray-300">
-          Scan to share this game
-        </p>
-      </div>
-    )}
-  </div>
+                  {/* Right Column - QR Code */}
+                  <div className="flex flex-col items-center justify-center">
+                    {qrCodeUrl && (
+                      <div className="text-center">
+                        <div className="bg-gradient-to-r from-blue-500 to-violet-500 p-1 rounded-xl shadow-lg">
+                          <div className="bg-white p-6 rounded-xl">
+                            <Image
+                              src={qrCodeUrl}
+                              alt="Game QR Code"
+                              width={256}
+                              height={256}
+                              className="transform transition-transform hover:scale-105"
+                            />
+                          </div>
+                        </div>
+                        <p className="mt-4 text-sm text-gray-300">
+                          Scan to share this game
+                        </p>
+                      </div>
+                    )}
+                  </div>
                 </div>
               </div>
             </div>
           </section>
         </>
       ) : (
-        <GamePlayer gameData={gameData.data} />
+        <GamePlayer gameData={gameData.data} id={gameData.id}/>
       )}
     </main>
   );
 }
-
-

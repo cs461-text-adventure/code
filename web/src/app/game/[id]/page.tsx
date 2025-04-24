@@ -37,13 +37,13 @@ export default function EditGame() {
           `${process.env.NEXT_PUBLIC_API_URL}/games/${gameId}`,
           {
             credentials: "include",
-          }
+          },
         );
 
         if (!response.ok) {
           if (response.status === 401) {
             throw new Error(
-              "Your session has expired. Please log in again to continue."
+              "Your session has expired. Please log in again to continue.",
             );
           } else if (response.status === 404) {
             throw new Error("Game not found");
@@ -112,7 +112,7 @@ export default function EditGame() {
             name,
             data: parsedData,
           }),
-        }
+        },
       );
 
       // Handle API response
@@ -120,7 +120,7 @@ export default function EditGame() {
         const errorData = await response.json().catch(() => ({}));
         if (response.status === 401) {
           throw new Error(
-            "Your session has expired. Please log in again to continue."
+            "Your session has expired. Please log in again to continue.",
           );
         } else if (response.status === 404) {
           throw new Error("Game not found");
@@ -130,7 +130,7 @@ export default function EditGame() {
 
       // On success, show success message and redirect to dashboard
       setError("Game updated successfully!");
-      
+
       // Redirect to dashboard after a short delay to show success message
       setTimeout(() => {
         router.push("/dashboard");
@@ -168,9 +168,7 @@ export default function EditGame() {
         {/* Form header */}
         <div className="text-center">
           <h1 className="text-3xl font-bold text-gray-900">Edit Game</h1>
-          <p className="mt-2 text-gray-600">
-            Update your game details below
-          </p>
+          <p className="mt-2 text-gray-600">Update your game details below</p>
         </div>
 
         {/* Game edit form */}
@@ -223,7 +221,7 @@ export default function EditGame() {
             >
               Cancel
             </button>
-            
+
             {/* Submit button with loading state */}
             <button
               type="submit"

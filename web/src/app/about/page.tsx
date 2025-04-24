@@ -23,9 +23,17 @@ export default async function About() {
           <li>Dmitry Uvarov</li>
         </ul>
 
-
-        <ul>used pictures
-          <li>Illustration by <a href="https://unsplash.com/@roundicons?utm_content=creditCopyText&utm_medium=referral&utm_source=unsplash">Round Icons</a> on <a href="https://unsplash.com/illustrations/a-pencil-and-a-piece-of-paper-on-a-white-background-PTHONxhEo2M?utm_content=creditCopyText&utm_medium=referral&utm_source=unsplash">Unsplash</a>
+        <ul>
+          used pictures
+          <li>
+            Illustration by{" "}
+            <a href="https://unsplash.com/@roundicons?utm_content=creditCopyText&utm_medium=referral&utm_source=unsplash">
+              Round Icons
+            </a>{" "}
+            on{" "}
+            <a href="https://unsplash.com/illustrations/a-pencil-and-a-piece-of-paper-on-a-white-background-PTHONxhEo2M?utm_content=creditCopyText&utm_medium=referral&utm_source=unsplash">
+              Unsplash
+            </a>
           </li>
         </ul>
       </div>
