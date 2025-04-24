@@ -60,7 +60,7 @@ export default function SignupPage() {
             password: password,
             name: name,
             image: undefined,
-            callbackURL: `https://texterra.xyz/dashboard`, // TODO: replace with domain
+            callbackURL: `http://localhost:3000/dashboard`, // TODO: replace with domain
           }),
           credentials: "include",
         },

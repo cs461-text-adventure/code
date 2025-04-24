@@ -104,5 +104,5 @@ export const auth = betterAuth({
   },
   trustedOrigins: isProduction
     ? [`https://${DOMAIN}`, `https://api.${DOMAIN}`]
-    : ["http://localhost"],
+    : ["http://localhost:3000"],
 });

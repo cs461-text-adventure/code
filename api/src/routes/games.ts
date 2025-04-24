@@ -1,6 +1,6 @@
 import "dotenv/config";
 import express from "express";
-import { eq } from "drizzle-orm";
+import { eq, count } from "drizzle-orm";
 import { z } from "zod";
 import {
   createSelectSchema,
@@ -15,6 +15,22 @@ const gameSelectSchema = createSelectSchema(games);
 const gameInsertSchema = createInsertSchema(games).strict();
 const gameUpdateSchema = createUpdateSchema(games).strict();
 const gameIdSchema = z.string().uuid();
+const gamePageSchema = z.object({
+  page: z
+    .string()
+    .optional()
+    .transform((val) => parseInt(val || "1", 10))
+    .refine((val) => Number.isInteger(val) && val > 0, {
+      message: "'page' must be a positive integer",
+    }),
+  size: z
+    .string()
+    .optional()
+    .transform((val) => parseInt(val || "100", 10))
+    .refine((val) => Number.isInteger(val) && val > 0, {
+      message: "'size' must be a positive integer",
+    }),
+});
 
 const router = express.Router();
 
@@ -52,26 +68,76 @@ router.post("/", authenticate, async (req, res) => {
  */
 router.get("/", async (req, res) => {
   try {
-    // TODO: Add pagination
-    const gamesList = await db
-      .select({
-        id: games.id,
-        name: games.name,
-        isPublic: games.isPublic,
-        data: games.data,
-        userId: games.userId,
-        author: user.name,
-      })
-      .from(games)
-      .innerJoin(user, eq(games.userId, user.id))
-      .where(eq(games.isPublic, true));
+    const result = gamePageSchema.safeParse(req.query);
+
+    if (!result.success) {
+      res.status(400).json({
+        message: "Invalid query parameters",
+        errors: result.error.flatten().fieldErrors,
+      });
+      return;
+    }
+
+    const { page, size } = result.data;
+    const maxSize = 100;
+    const effectiveSize = Math.min(size, maxSize);
+
+    const offset = (page - 1) * effectiveSize;
+    const limit = effectiveSize;
+
+    const [gamesList, totalCount] = await Promise.all([
+      db
+        .select({
+          id: games.id,
+          name: games.name,
+          isPublic: games.isPublic,
+          data: games.data,
+          userId: games.userId,
+          author: user.name,
+        })
+        .from(games)
+        .innerJoin(user, eq(games.userId, user.id))
+        .where(eq(games.isPublic, true))
+        .limit(limit)
+        .offset(offset)
+        .orderBy(games.id),
+      db.select({ count: count() }).from(games).where(eq(games.isPublic, true)),
+    ]);
+
+    const totalItems = totalCount[0]?.count || 0;
+    const totalPages =
+      totalItems === 0 ? 1 : Math.ceil(totalItems / effectiveSize); // Avoid division by zero, ensure at least 1 page conceptually if no items
 
     const validatedGames = gamesList.map((game) => {
       const validatedGame = gameSelectSchema.parse(game);
       return { ...validatedGame, author: game.author };
     });
 
-    res.status(200).json(validatedGames);
+    const links: Record<string, string> = {
+      self: `${ORIGIN}/api/games/?page=${page}&size=${effectiveSize}`,
+      first: `${ORIGIN}/api/games/?page=1&size=${effectiveSize}`,
+      last: `${ORIGIN}/api/games/?page=${totalPages}&size=${effectiveSize}`,
+    };
+    if (page > 1) {
+      links.prev = `${ORIGIN}/api/games/?page=${page - 1}&size=${effectiveSize}`;
+    }
+    if (page < totalPages) {
+      links.next = `${ORIGIN}/api/games/?page=${page + 1}&size=${effectiveSize}`;
+    }
+
+    const responsePayload = {
+      data: validatedGames,
+      meta: {
+        totalItems: totalItems,
+        itemCount: validatedGames.length,
+        itemsPerPage: effectiveSize,
+        totalPages: totalPages,
+        currentPage: page,
+      },
+      links: links,
+    };
+
+    res.status(200).json(responsePayload);
   } catch (error) {
     console.error(error); // TODO: Edit error message
     res.status(500).json({ message: "Internal server error" }); // TODO: Edit error message

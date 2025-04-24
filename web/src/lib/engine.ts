@@ -34,9 +34,9 @@ export class Room {
 }
 
 export class Player {
-  private _health: number;
-  private _inventory: Item[];
-  private _currentRoom: Room;
+  public _health: number;
+  public _inventory: Item[];
+  public _currentRoom: Room;
 
   constructor(health: number, currentRoom: Room, inventory: Item[] = []) {
     this._health = health;
@@ -44,19 +44,19 @@ export class Player {
     this._currentRoom = currentRoom;
   }
 
-  public get health(): number {
+  public getHealth(): number {
     return this._health;
   }
 
-  public set health(value: number) {
+  public setHealth(value: number) {
     this._health = value;
   }
 
-  public get inventory(): Item[] {
+  public getInventory(): Item[] {
     return this._inventory;
   }
 
-  public set inventory(value: Item[]) {
+  public setInventory(value: Item[]) {
     this._inventory = value;
   }
 
@@ -71,7 +71,7 @@ export class Player {
     }
   }
 
-  public get currentRoom(): Room {
+  public getCurrentRoom(): Room {
     return this._currentRoom;
   }
 
@@ -84,22 +84,39 @@ export class Player {
 }
 
 export class Game {
-  private _rooms: Map<string, Room>;
-  private _player: Player;
-  private stack: string[] = [];
+  public rooms: Map<string, Room>;
+  public player: Player;
+  public stack: string[] = [];
 
   constructor(rooms: Room[], player: Player) {
-    this._rooms = new Map();
+    this.rooms = new Map();
     rooms.forEach((room) => {
-      this._rooms.set(room.description, room);
+      this.rooms.set(room.id, room);
     });
-    this._player = player;
+    this.player = player;
+  }
+
+  getSaveState(): object {
+    const roomInventories: { [roomId: string]: Item[] } = {};
+    this.rooms.forEach((room, roomId) => {
+      roomInventories[roomId] = room.inventory;
+    });
+
+    return {
+      player: {
+        health: this.player.getHealth(),
+        inventory: this.player.getInventory(),
+        currentRoomId: this.player.getCurrentRoom().id,
+      },
+      roomInventories: roomInventories,
+      stack: this.stack,
+    };
   }
 
   nextStep(input: string | null): string[] {
     const responses: string[] = [];
     // let end_condition = false; TODO: Move elsewhere
-    if (this._player.health > 0) {
+    if (this.player._health > 0) {
       if (input !== null) {
         responses.push(...this.processCommand(input));
       }
@@ -148,8 +165,8 @@ export class Game {
       case "south":
       case "east":
       case "west":
-        this._player.move(command);
-        responses.push(this._player.currentRoom.description);
+        this.player.move(command);
+        responses.push(this.player._currentRoom.description);
         break;
       case "grab":
         responses.push("What do you want to pick up?");
@@ -172,12 +189,12 @@ export class Game {
 
   processItemInput(input: string): string[] {
     const itemName = sanitizeInput(input);
-    const item = this._player.currentRoom.inventory.find(
+    const item = this.player._currentRoom.inventory.find(
       (item) => item.name.toLowerCase() === itemName,
     );
     if (item) {
-      this._player.addItem(item);
-      this._player.currentRoom.removeItem(item);
+      this.player.addItem(item);
+      this.player._currentRoom.removeItem(item);
       return ["Taken"];
     } else {
       return [`You can't see any "${itemName}" here.`];
