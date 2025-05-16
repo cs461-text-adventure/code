@@ -2,8 +2,7 @@
 
 /**
  * Game Edit Page
- *
- * This page provides a form interface for editing existing games. It includes:
+ *  * This page provides a form interface for editing existing games. It includes:
  * - Game name input field pre-filled with existing data
  * - JSON data input field with validation pre-filled with existing data
  * - Error handling for invalid JSON and API responses
@@ -12,15 +11,28 @@
  *
  * Note: This page is protected by authentication middleware.
  * Users with expired sessions will be prompted to log in again.
+ * This page provides an interface for editing existing games with both JSON and visual editors.
+ * It integrates modular components for a better user experience and code organization.
  */
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useParams, useRouter } from "next/navigation";
+// Remove this import and use the one from the Inspector component
+import { GameComponent } from "./components/types";
+import Inspector from "@/components/game/Inspector";
+
+// import GameMap from "./components/GameMap";
+
+// import ComponentPalette from "./components/ComponentPalette";
+import JsonEditor from "./components/JsonEditor";
+import GameMapVisualizer from "./components/GameMapVisualizer";
+
 
 export default function EditGame() {
   const params = useParams();
   const router = useRouter();
   const gameId = params.id as string;
+  const mapRef = useRef<HTMLDivElement>(null);
 
   // Form state management
   const [name, setName] = useState("");
@@ -28,6 +40,11 @@ export default function EditGame() {
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
+  const [isVisualEditor, setIsVisualEditor] = useState(false);
+  
+  // Visual editor state
+  const [mapComponents, setMapComponents] = useState<GameComponent[]>([]);
+  const [selectedComponent, setSelectedComponent] = useState<GameComponent | null>(null);
 
   // Fetch existing game data when component mounts
   useEffect(() => {
@@ -55,6 +72,23 @@ export default function EditGame() {
         const gameData = await response.json();
         setName(gameData.name);
         setData(JSON.stringify(gameData.data, null, 2));
+        
+        // Initialize map components from game data if available
+        try {
+          const parsedData = gameData.data;
+          if (parsedData.rooms && Array.isArray(parsedData.rooms)) {
+            const components: GameComponent[] = parsedData.rooms.map((room: any, index: number) => ({
+              id: room.id || `room-${index}`,
+              type: index === 0 ? 'start-room' : 'room',
+              name: `Room ${index + 1}`,
+              position: { x: 100 + (index * 150), y: 100 },
+              properties: { ...room }
+            }));
+            setMapComponents(components);
+          }
+        } catch (err) {
+          console.error("Failed to parse rooms for visual editor:", err);
+        }
       } catch (err) {
         if (err instanceof Error) {
           setError(err.message);
@@ -70,7 +104,6 @@ export default function EditGame() {
   }, [gameId]);
 
   // Event handlers for form inputs
-  // Clear errors when user starts typing to provide immediate feedback
   const handleNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setName(e.target.value);
     setError("");
@@ -81,15 +114,7 @@ export default function EditGame() {
     setError("");
   };
 
-  /**
-   * Form submission handler
-   * 1. Validates JSON data format
-   * 2. Sends PATCH request to /api/games/:id endpoint
-   * 3. Handles various response cases:
-   *    - 401: User needs to authenticate
-   *    - 200: Game updated successfully
-   *    - Other errors: Display appropriate error message
-   */
+  // Form submission handler
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
@@ -107,7 +132,7 @@ export default function EditGame() {
           headers: {
             "Content-Type": "application/json",
           },
-          credentials: "include", // Important for sending cookies
+          credentials: "include",
           body: JSON.stringify({
             name,
             data: parsedData,
@@ -149,106 +174,241 @@ export default function EditGame() {
     }
   };
 
-  // Show loading state while fetching game data
+  // Toggle between simple and visual editor
+  const toggleEditor = () => {
+    if (!isVisualEditor) {
+      // Switching to visual editor - parse JSON and update components
+      try {
+        const parsedData = JSON.parse(data);
+        // Format the JSON before displaying it
+        const formattedData = JSON.stringify(parsedData, null, 2);
+        setData(formattedData);
+        
+        // Update visual components from JSON data
+        if (parsedData.rooms && Array.isArray(parsedData.rooms)) {
+          const components: GameComponent[] = parsedData.rooms.map((room: any, index: number) => ({
+            id: room.id || `room-${index}`,
+            type: index === 0 ? 'start-room' : 'room',
+            name: room.description?.substring(0, 20) || `Room ${index + 1}`,
+            position: { x: 100 + (index * 150), y: 100 },
+            properties: { ...room }
+          }));
+          setMapComponents(components);
+        }
+      } catch (err) {
+        setError("Invalid JSON format. Please correct before switching to visual editor.");
+        return; // Don't switch if JSON is invalid
+      }
+    } else {
+      // Switching to JSON editor - update JSON from components
+      try {
+        // Convert visual components back to JSON
+        const roomsData = mapComponents.map(component => component.properties);
+        const currentData = JSON.parse(data);
+        const updatedData = { ...currentData, rooms: roomsData };
+        setData(JSON.stringify(updatedData, null, 2));
+      } catch (err) {
+        console.error("Failed to update JSON from visual components:", err);
+      }
+    }
+    
+    setIsVisualEditor(!isVisualEditor);
+  };
+
+  // Update component property
+  const updateComponentProperty = (componentId: string, property: string, value: any) => {
+    setMapComponents(mapComponents.map(component => {
+      if (component.id === componentId) {
+        if (property === 'name') {
+          return { ...component, name: value };
+        } else if (property === 'id') {
+          return { ...component, id: value };
+        } else if (property === 'properties') {
+          return { ...component, properties: value };
+        } else {
+          return { ...component, properties: { ...component.properties, [property]: value } };
+        }
+      }
+      return component;
+    }));
+  };
+
+  // Handle adding a new component
+  const handleAddComponent = (componentType: GameComponent['type']) => {
+    const newId = `${componentType}-${Date.now()}`;
+    const newComponent: GameComponent = {
+      id: newId,
+      type: componentType,
+      name: `New ${componentType}`,
+      position: { x: 150, y: 150 },
+      properties: {
+        id: newId,
+        description: `Description for new ${componentType}`,
+        inventory: [],
+        connections: {}
+      }
+    };
+    
+    setMapComponents([...mapComponents, newComponent]);
+    setSelectedComponent(newComponent);
+  };
+
+  // Handle drag and drop for the map
+  const handleDrop = (e: React.DragEvent) => {
+    e.preventDefault();
+    
+    if (!mapRef.current) return;
+    
+    const componentType = e.dataTransfer.getData('componentType') as GameComponent['type'];
+    if (!componentType) return;
+    
+    const rect = mapRef.current.getBoundingClientRect();
+    const x = e.clientX - rect.left;
+    const y = e.clientY - rect.top;
+    
+    const newId = `${componentType}-${Date.now()}`;
+    const newComponent: GameComponent = {
+      id: newId,
+      type: componentType,
+      name: `New ${componentType}`,
+      position: { x, y },
+      properties: {
+        id: newId,
+        description: `Description for new ${componentType}`,
+        inventory: [],
+        connections: {}
+      }
+    };
+    
+    setMapComponents([...mapComponents, newComponent]);
+    setSelectedComponent(newComponent);
+  };
+
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+  };
+
   if (isLoading) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-center">
-          <p className="text-gray-600">Loading game data...</p>
-        </div>
+        <p className="text-gray-500">Loading game data...</p>
       </div>
     );
   }
 
   return (
-    // Main container with responsive padding
-    <div className="min-h-screen bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
-      {/* Form container with max width for readability */}
-      <div className="max-w-md mx-auto">
-        {/* Form header */}
-        <div className="text-center">
-          <h1 className="text-3xl font-bold text-gray-900">Edit Game</h1>
-          <p className="mt-2 text-gray-600">Update your game details below</p>
-        </div>
-
-        {/* Game edit form */}
-        <form onSubmit={handleSubmit} className="mt-8 space-y-6">
-          {/* Game name input field */}
-          <div>
-            <label
-              htmlFor="name"
-              className="block text-sm font-medium text-gray-700"
-            >
-              Game Name
-            </label>
-            <input
-              type="text"
-              id="name"
-              required
-              value={name}
-              onChange={handleNameChange}
-              className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500 text-gray-900"
-              placeholder="Enter game name"
-            />
-          </div>
-
-          {/* Game data input field - expects valid JSON */}
-          <div>
-            <label
-              htmlFor="data"
-              className="block text-sm font-medium text-gray-700"
-            >
-              Game Data (JSON)
-            </label>
-            <textarea
-              id="data"
-              required
-              value={data}
-              onChange={handleDataChange}
-              rows={10}
-              className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500 font-mono text-gray-900"
-              placeholder='{"key": "value"}'
-            />
-          </div>
-
-          {/* Action buttons */}
+    <div className="min-h-screen bg-gray-50 py-8 px-4 sm:px-6 lg:px-8">
+      <div className="max-w-7xl mx-auto">
+        {/* Header with game name and save button */}
+        <div className="flex justify-between items-center mb-6">
+          <h1 className="text-2xl font-bold text-gray-900">Edit Game: {name}</h1>
           <div className="flex space-x-4">
-            {/* Cancel button */}
             <button
-              type="button"
-              onClick={() => router.push("/dashboard")}
-              className="flex-1 py-2 px-4 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+              onClick={toggleEditor}
+              className="px-4 py-2 bg-white border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
             >
-              Cancel
+              {isVisualEditor ? "Switch to JSON Editor" : "Switch to Visual Editor"}
             </button>
-
-            {/* Submit button with loading state */}
             <button
-              type="submit"
+              onClick={handleSubmit}
               disabled={isSaving}
-              className={`flex-1 py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white ${
+              className={`px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white ${
                 isSaving
                   ? "bg-indigo-400 cursor-not-allowed"
                   : "bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
               }`}
             >
-              {isSaving ? "Saving..." : "Save Changes"}
+              {isSaving ? "Saving..." : "Save Game"}
             </button>
           </div>
+        </div>
 
-          {/* Error/Success message display */}
-          {error && (
-            <div
-              className={`mt-4 p-3 rounded ${
-                error.includes("successfully")
-                  ? "bg-green-100 text-green-700"
-                  : "bg-red-100 text-red-700"
-              }`}
-            >
-              {error}
-            </div>
-          )}
-        </form>
+        {/* Error/Success message display */}
+        {error && (
+          <div
+            className={`mb-6 p-3 rounded ${
+              error.includes("successfully")
+                ? "bg-green-100 text-green-700"
+                : "bg-red-100 text-red-700"
+            }`}
+          >
+            {error}
+          </div>
+        )}
+
+        {/* Game name input */}
+        <div className="mb-6">
+          <label htmlFor="name" className="block text-lg font-semibold text-gray-800 mb-2">
+            Game Name
+          </label>
+          <input
+            type="text"
+            id="name"
+            value={name}
+            onChange={handleNameChange}
+            className="mt-1 block w-full rounded-md border border-gray-300 px-4 py-3 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500 text-xl font-bold text-gray-800"
+          />
+        </div>
+
+        {isVisualEditor ? (
+  // Visual Editor with JSON Editor
+  <div className="grid grid-cols-1 gap-6">
+    {/* Visual Editor Components */}
+    <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
+      {/* Map Editor - Now takes up 3 columns instead of 2 */}
+      <div className="lg:col-span-3">
+        <GameMapVisualizer 
+          gameData={{ 
+            rooms: JSON.parse(data).rooms || [] 
+          }}
+          selectedComponent={selectedComponent}
+          onSelectComponent={setSelectedComponent}
+          mapComponents={mapComponents}
+        />
+      </div>
+      
+      {/* Inspector - Now takes up 2 columns instead of 1 */}
+      <div className="lg:col-span-2">
+        <Inspector 
+          component={selectedComponent as any}
+          onUpdateComponent={updateComponentProperty}
+        />
+      </div>
+    </div>
+    
+    {/* JSON Editor below the visual components */}
+    <div className="mt-6">
+      <h3 className="text-lg font-medium text-gray-900 mb-2">JSON Data</h3>
+      <JsonEditor 
+        data={data}
+        handleDataChange={handleDataChange}
+        formatJSON={() => {
+          try {
+            const parsedData = JSON.parse(data);
+            setData(JSON.stringify(parsedData, null, 2));
+          } catch (err) {
+            setError("Invalid JSON format");
+          }
+        }}
+      />
+    </div>
+  </div>
+) : (
+  // JSON Editor Only
+  <JsonEditor 
+    data={data}
+    handleDataChange={handleDataChange}
+    formatJSON={() => {
+      try {
+        const parsedData = JSON.parse(data);
+        setData(JSON.stringify(parsedData, null, 2));
+      } catch (err) {
+        setError("Invalid JSON format");
+      }
+    }}
+  />
+)}
+
       </div>
     </div>
   );
